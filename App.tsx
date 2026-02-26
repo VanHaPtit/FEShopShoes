@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import GeminiAssistant from './components/GeminiAssistant';
+import PaymentCallback from './pages/PaymentCallback';
 
 // Lazy loading pages for performance
 const Home = lazy(() => import('./pages/Home'));
@@ -26,6 +27,7 @@ const App: React.FC = () => {
             <Route path="/shop" element={<Shop />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/payment-callback" element={<PaymentCallback />} />
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

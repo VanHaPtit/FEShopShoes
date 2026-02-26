@@ -248,11 +248,13 @@ import React, {
 import { CartItem, Product, ProductVariant } from '../types';
 import { generateId } from '../utils/format';
 import axiosClient from '../api/axiosClient';
+import PaymentService from '../services/PaymentService';
+import { useToast } from './ToastContext'; // Import useToast
 
 /* ================= TYPES ================= */
 
 interface AuthUser {
-  id: number;
+  id: string; // Đổi thành string để khớp với logic fetchUserCartFromDB
   fullName: string;
   email: string;
   token: string;
@@ -269,7 +271,10 @@ interface CartContextType {
   updateQuantity: (itemId: number, quantity: number) => Promise<void>;
   clearCart: () => void;
   totalAmount: number;
+  shippingFee: number;
+  finalAmount: number;
   fetchUserCart: () => Promise<void>;
+  checkoutWithVNPay: () => Promise<void>; // Thêm hàm checkout
   isLoading: boolean;
 }
 
@@ -281,6 +286,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<CartItem[]>([]);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
 
   /* ===== 1. FETCH CART FROM DB ===== */
   const fetchUserCartFromDB = useCallback(async (userId?: string) => {
@@ -289,13 +295,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const res = await axiosClient.get(`/carts/user/${userId}`);
-
-      // Backend trả Cart object → lấy items bên trong
-      const items =
-        res.data?.items ||
-        res.data?.cartItems ||
-        [];
-
+      // Linh hoạt theo cấu trúc trả về của Backend
+      const items = res.data?.items || res.data?.cartItems || res.data || [];
       setCart(items);
     } catch (err: any) {
       console.error('Lỗi fetch giỏ hàng:', err);
@@ -315,12 +316,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const parsed: AuthUser = JSON.parse(savedUser);
         setUser(parsed);
-        fetchUserCartFromDB(parsed.id); // ✅ FIX Ở ĐÂY
+        fetchUserCartFromDB(parsed.id);
       } catch {
         localStorage.removeItem('user');
       }
     } else {
-      // Guest cart
       const savedCart = localStorage.getItem('adidas_cart');
       if (savedCart) {
         setCart(JSON.parse(savedCart));
@@ -337,18 +337,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       try {
         const payload = {
-          variant: { id: variant.id },
+          variantId: variant.id, // Thường backend nhận variantId thay vì object
           quantity,
           price: variant.price || product.salePrice || product.basePrice
         };
 
         await axiosClient.post('/cart-items', payload);
-        await fetchUserCartFromDB(user.id); // ✅ FIX
-      } catch {
-        alert('Không thể thêm vào giỏ hàng');
+        await fetchUserCartFromDB(user.id);
+        showToast("Đã thêm vào giỏ hàng", "success");
+      } catch (error) {
+        showToast("Không thể thêm vào giỏ hàng", "error");
       }
     } else {
-      // Guest
+      // Logic cho khách (Guest)
       const existing = cart.find(i => i.variant?.id === variant.id);
       let newCart: CartItem[];
 
@@ -362,7 +363,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         newCart = [
           ...cart,
           {
-            id: generateId(),
+            id: Date.now(), // Fake ID cho guest
             product,
             variant,
             quantity,
@@ -373,6 +374,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setCart(newCart);
       localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+      showToast("Đã thêm vào giỏ hàng (Guest)", "success");
     }
   };
 
@@ -380,27 +382,36 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateQuantity = async (itemId: number, quantity: number) => {
     if (quantity < 1) return;
 
-    if (user) {
-      await axiosClient.put(`/cart-items/${itemId}`, { quantity });
-      await fetchUserCartFromDB(user.id); // ✅ FIX
-    } else {
-      const newCart = cart.map(i =>
-        i.id === itemId ? { ...i, quantity } : i
-      );
-      setCart(newCart);
-      localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+    try {
+      if (user) {
+        await axiosClient.put(`/cart-items/${itemId}`, { quantity });
+        await fetchUserCartFromDB(user.id);
+      } else {
+        const newCart = cart.map(i =>
+          i.id === itemId ? { ...i, quantity } : i
+        );
+        setCart(newCart);
+        localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+      }
+    } catch (error) {
+      showToast("Lỗi cập nhật số lượng", "error");
     }
   };
 
   /* ===== 5. REMOVE ITEM ===== */
   const removeFromCart = async (itemId: number) => {
-    if (user) {
-      await axiosClient.delete(`/cart-items/${itemId}`);
-      await fetchUserCartFromDB(user.id); // ✅ FIX
-    } else {
-      const newCart = cart.filter(i => i.id !== itemId);
-      setCart(newCart);
-      localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+    try {
+      if (user) {
+        await axiosClient.delete(`/cart-items/${itemId}`);
+        await fetchUserCartFromDB(user.id);
+      } else {
+        const newCart = cart.filter(i => i.id !== itemId);
+        setCart(newCart);
+        localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+      }
+      showToast("Đã xóa sản phẩm", "info");
+    } catch (error) {
+      showToast("Lỗi xóa sản phẩm", "error");
     }
   };
 
@@ -409,11 +420,45 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('adidas_cart');
   };
 
-  /* ===== 6. TOTAL ===== */
+  /* ===== 6. CALCULATION ===== */
   const totalAmount = cart.reduce((sum, item) => {
     const price = item.price || item.variant?.price || 0;
     return sum + price * item.quantity;
   }, 0);
+
+  const shippingFee = totalAmount > 1500000 || totalAmount === 0 ? 0 : 50000;
+  const finalAmount = totalAmount + shippingFee;
+
+  /* ===== 7. VNPAY CHECKOUT ===== */
+  const checkoutWithVNPay = async () => {
+    if (!user) {
+      showToast("Vui lòng đăng nhập để thanh toán", "error");
+      return;
+    }
+    
+    if (cart.length === 0) {
+      showToast("Giỏ hàng đang trống", "error");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Gọi service tạo URL thanh toán
+      // Truyền finalAmount cho backend xử lý
+      const data = await PaymentService.createPaymentUrl(finalAmount);
+      
+      if (data && data.url) {
+        window.location.href = data.url; // Chuyển hướng sang VNPay
+      } else {
+        throw new Error("Không nhận được URL thanh toán");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      showToast("Lỗi khởi tạo thanh toán VNPay", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <CartContext.Provider
@@ -424,7 +469,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateQuantity,
         clearCart,
         totalAmount,
+        shippingFee,
+        finalAmount,
         fetchUserCart: () => fetchUserCartFromDB(user?.id),
+        checkoutWithVNPay,
         isLoading
       }}
     >
@@ -432,8 +480,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </CartContext.Provider>
   );
 };
-
-/* ================= HOOK ================= */
 
 export const useCart = () => {
   const ctx = useContext(CartContext);
