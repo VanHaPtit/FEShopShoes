@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
 import { formatCurrency } from '../utils/format';
+import * as React from 'react';
 
 interface Props {
   product: Product;
+  key?: React.Key;
 }
 
 const ProductCard = ({ product }: Props) => {

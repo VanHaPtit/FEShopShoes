@@ -209,48 +209,34 @@
 
 
 
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { AdidasLogo, SearchIcon, UserIcon, HeartIcon, CartIcon, MenuIcon, CloseIcon } from './SimpleIcons';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { AdidasLogo, SearchIcon, UserIcon, CartIcon, MenuIcon, CloseIcon } from './SimpleIcons';
 import { useCart } from '../context/CartContext';
-import { AuthService } from '../services/AuthService';
+import { useAuth } from '../context/AuthContext'; // Sử dụng Context mới
 
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [user, setUser] = useState<any>(null);
+  const { user, logout } = useAuth(); // Lấy thông tin user từ AuthContext
   const { cart } = useCart();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Cập nhật trạng thái user mỗi khi chuyển trang hoặc component mount
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, [location]);
+  // Kiểm tra quyền Admin (role_id = 2 hoặc ROLE_ADMIN)
+  const isAdmin = user?.roles?.some((r) => r.id === 2 || r.name === 'ROLE_ADMIN');
 
-  const handleLogout = async () => {
-    const isConfirmed = window.confirm("Bạn có chắc chắn muốn đăng xuất không?");
-    if (isConfirmed) {
-      try {
-        await AuthService.logout();
-        localStorage.removeItem('user');
-        setUser(null);
-        setIsMobileMenuOpen(false);
-        alert("Bạn đã đăng xuất thành công!");
-        navigate('/');
-      } catch (err) {
-        console.error("Lỗi đăng xuất:", err);
-      }
+  const handleLogout = () => {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
+      logout();
+      setIsMobileMenuOpen(false);
+      navigate('/');
     }
   };
 
-  const handleSearch = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
     if (searchTerm.trim()) {
       navigate(`/shop?q=${encodeURIComponent(searchTerm.trim())}`);
       setSearchTerm('');
@@ -270,20 +256,26 @@ const Navbar: React.FC = () => {
 
           {user ? (
             <>
-              {/* Hiển thị Full Name thay vì Email */}
+              {/* Nút truy cập nhanh vào Admin cho người có quyền */}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="mr-4 px-3 py-1 bg-red-600 text-white font-bold text-[10px] rounded hover:bg-black transition-all"
+                >
+                  TRANG QUẢN TRỊ
+                </Link>
+              )}
               <span className="font-bold text-black italic">
-                XIN CHÀO, {user.fullName ? user.fullName.toUpperCase() : 'KHÁCH'}
+                XIN CHÀO, {user.fullName?.toUpperCase()}
               </span>
               <button onClick={handleLogout} className="hover:underline text-red-600 font-bold">Đăng xuất</button>
             </>
           ) : (
             <>
-              {/* Chuyển hướng đến trang login (tab đăng ký/đăng nhập xử lý tại Login.tsx) */}
-              <Link to="/login" className="hover:underline">Đăng ký</Link>
-              <Link to="/login" className="hover:underline">Đăng nhập</Link>
+              <Link to="/login" className="hover:underline">Đăng ký / Đăng nhập</Link>
             </>
           )}
-          <div className="flex items-center space-x-1 font-bold text-black">VN</div>
+          <div className="font-bold text-black">VN</div>
         </div>
 
         <div className="max-w-[1400px] mx-auto px-4 lg:px-10 flex items-center justify-between h-14 md:h-20">
@@ -319,7 +311,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-white z-[100] p-6 lg:hidden overflow-y-auto flex flex-col">
           <div className="flex justify-between items-center mb-10">
@@ -328,21 +320,11 @@ const Navbar: React.FC = () => {
           </div>
           <div className="flex flex-col space-y-6 text-2xl font-black italic uppercase">
             {user && <div className="text-sm not-italic text-gray-500">Chào, {user.fullName}</div>}
+            {isAdmin && <Link onClick={() => setIsMobileMenuOpen(false)} to="/admin" className="text-red-600">Quản trị hệ thống</Link>}
             <Link onClick={() => setIsMobileMenuOpen(false)} to="/shop">Giày</Link>
             <Link onClick={() => setIsMobileMenuOpen(false)} to="/shop?category=men">Nam</Link>
             <Link onClick={() => setIsMobileMenuOpen(false)} to="/shop?category=women">Nữ</Link>
             <Link onClick={() => setIsMobileMenuOpen(false)} to="/shop?category=sale" className="text-red-600">Giảm Giá</Link>
-          </div>
-          <hr className="my-8 border-gray-100" />
-          <div className="flex flex-col space-y-4 font-bold text-sm uppercase">
-            {user ? (
-              <button onClick={handleLogout} className="text-left text-red-600">Đăng xuất</button>
-            ) : (
-              <>
-                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Đăng nhập</Link>
-                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Đăng ký</Link>
-              </>
-            )}
           </div>
         </div>
       )}
