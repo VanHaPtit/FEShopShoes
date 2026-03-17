@@ -7,7 +7,7 @@ export interface Category {
     id: number;
     name: string;
     slug: string;
-}
+}   
 
 export interface Product {
     id: number;
@@ -46,5 +46,5 @@ export interface User {
     id: number;
     email: string;
     fullName: string;
-    roles: Role[];
+    roles: string[];
 }

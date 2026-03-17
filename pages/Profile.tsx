@@ -24,7 +24,7 @@ const Profile: React.FC = () => {
                 // 1. Lấy thông tin cơ bản từ LocalStorage để lấy ID
                 const savedUser = localStorage.getItem('user');
                 if (!savedUser) {
-                    navigate('/login');
+                    navigate('/signin');
                     return;
                 }
 

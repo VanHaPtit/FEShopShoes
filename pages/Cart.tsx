@@ -6,10 +6,19 @@ import { formatCurrency } from '../utils/format';
 import { TrashIcon } from '../components/SimpleIcons';
 
 const Cart: React.FC = () => {
-  const { cart, removeFromCart, updateQuantity, totalAmount, isLoading } = useCart();
-  const shipping = totalAmount > 1500000 ? 0 : 50000;
+  // Lấy toàn bộ dữ liệu đã tính toán sẵn từ Context
+  const { 
+    cart, 
+    removeFromCart, 
+    updateQuantity, 
+    totalAmount, 
+    shippingFee, 
+    finalAmount, 
+    checkoutWithVNPay, 
+    isLoading 
+  } = useCart();
 
-  if (isLoading) {
+  if (isLoading && cart.length === 0) {
     return (
       <div className="max-w-[1400px] mx-auto px-4 lg:px-10 py-20 text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black mb-4"></div>
@@ -39,11 +48,10 @@ const Cart: React.FC = () => {
       <h1 className="text-4xl font-black italic uppercase tracking-tighter mb-10">GIỎ HÀNG CỦA BẠN</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Cart Items List */}
+        {/* Danh sách sản phẩm */}
         <div className="lg:col-span-8 space-y-6">
           {cart.map((item) => (
             <div key={item.id} className="flex flex-col sm:flex-row border-b border-gray-100 pb-6">
-              {/* Ảnh sản phẩm - Lấy từ item.variant.product.images */}
               <div className="w-full sm:w-40 aspect-square bg-gray-100 flex-shrink-0">
                 <img
                   src={item.variant?.product?.images?.[0] || 'https://placehold.co/400x400?text=No+Image'}
@@ -52,11 +60,9 @@ const Cart: React.FC = () => {
                 />
               </div>
 
-              {/* Chi tiết sản phẩm */}
               <div className="flex-grow sm:ml-6 mt-4 sm:mt-0 flex flex-col justify-between">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    {/* Tên sản phẩm - Lấy từ item.variant.product.name */}
                     <h3 className="font-bold uppercase text-lg italic">
                       {item.variant?.product?.name || 'Sản phẩm không xác định'}
                     </h3>
@@ -70,7 +76,7 @@ const Cart: React.FC = () => {
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="px-3 hover:bg-gray-100 transition-colors"
-                          disabled={item.quantity <= 1}
+                          disabled={item.quantity <= 1 || isLoading}
                         >
                           -
                         </button>
@@ -78,6 +84,7 @@ const Cart: React.FC = () => {
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="px-3 hover:bg-gray-100 transition-colors"
+                          disabled={isLoading}
                         >
                           +
                         </button>
@@ -85,6 +92,7 @@ const Cart: React.FC = () => {
 
                       <button
                         onClick={() => removeFromCart(item.id)}
+                        disabled={isLoading}
                         className="text-gray-400 hover:text-red-600 transition-colors"
                         title="Xóa khỏi giỏ hàng"
                       >
@@ -94,7 +102,6 @@ const Cart: React.FC = () => {
                   </div>
 
                   <div className="text-right">
-                    {/* Thành tiền của item */}
                     <p className="font-bold text-lg">
                       {formatCurrency((item.variant?.price || item.price || 0) * item.quantity)}
                     </p>
@@ -108,7 +115,7 @@ const Cart: React.FC = () => {
           ))}
         </div>
 
-        {/* Order Summary Sidebar */}
+        {/* Tóm tắt đơn hàng */}
         <div className="lg:col-span-4 space-y-6">
           <div className="border-2 border-black p-6 space-y-6 sticky top-24">
             <h2 className="text-xl font-black italic uppercase tracking-tighter">TÓM TẮT ĐƠN HÀNG</h2>
@@ -120,22 +127,38 @@ const Cart: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span>Vận chuyển</span>
-                <span className="font-bold">{shipping === 0 ? 'MIỄN PHÍ' : formatCurrency(shipping)}</span>
+                {/* Sử dụng shippingFee từ Context */}
+                <span className="font-bold">{shippingFee === 0 ? 'MIỄN PHÍ' : formatCurrency(shippingFee)}</span>
               </div>
               <hr className="border-gray-100" />
               <div className="flex justify-between text-lg font-black tracking-tighter italic">
                 <span>TỔNG CỘNG</span>
-                <span>{formatCurrency(totalAmount + shipping)}</span>
+                {/* Sử dụng finalAmount từ Context */}
+                <span>{formatCurrency(finalAmount)}</span>
               </div>
             </div>
 
-            <button className="w-full bg-black text-white py-4 font-bold uppercase text-sm tracking-widest hover:bg-gray-900 transition-all flex items-center justify-center group">
-              THANH TOÁN
-              <span className="ml-3 group-hover:translate-x-1 transition-transform">→</span>
+            <button 
+              onClick={checkoutWithVNPay} 
+              disabled={isLoading} 
+              className="w-full bg-black text-white py-4 font-bold uppercase text-sm tracking-widest hover:bg-gray-900 transition-all flex items-center justify-center group disabled:bg-gray-400"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-3"></div>
+                  ĐANG XỬ LÝ...
+                </>
+              ) : (
+                <>
+                  THANH TOÁN VNPAY
+                  <span className="ml-3 group-hover:translate-x-1 transition-transform">→</span>
+                </>
+              )}
             </button>
           </div>
 
-          {shipping > 0 && (
+          {/* Thông báo miễn phí vận chuyển */}
+          {shippingFee > 0 && (
             <div className="bg-[#ede734] p-4 text-center">
               <p className="text-[10px] font-bold uppercase tracking-widest">
                 Mua thêm {formatCurrency(1500000 - totalAmount)} để được MIỄN PHÍ VẬN CHUYỂN
