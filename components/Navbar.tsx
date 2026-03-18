@@ -225,7 +225,7 @@ const Navbar: React.FC = () => {
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   // Kiểm tra quyền Admin (role_id = 2 hoặc ROLE_ADMIN)
-  const isAdmin = user?.roles?.some((r) => r.id === 2 || r.name === 'ROLE_ADMIN');
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN');
 
   const handleLogout = () => {
     if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
@@ -272,7 +272,7 @@ const Navbar: React.FC = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="hover:underline">Đăng ký / Đăng nhập</Link>
+              <Link to="/signin" className="hover:underline">Đăng ký / Đăng nhập</Link>
             </>
           )}
           <div className="font-bold text-black">VN</div>
@@ -305,7 +305,7 @@ const Navbar: React.FC = () => {
               />
               <button type="submit" className="absolute right-2 top-2"><SearchIcon /></button>
             </form>
-            <Link to={user ? "/profile" : "/login"} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><UserIcon /></Link>
+            <Link to={user ? "/profile" : "/signin"} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><UserIcon /></Link>
             <Link to="/cart" className="p-2 hover:bg-gray-100 rounded-full transition-colors"><CartIcon count={cartCount} /></Link>
           </div>
         </div>

@@ -454,23 +454,30 @@
 
 
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthService } from '../services/AuthService';
-import { useAuth } from '../context/AuthContext'; // Sử dụng Context mới
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const Login: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
+  const [isLogin, setIsLogin] = useState(location.pathname === '/signin');
+  
+  useEffect(() => {
+    setIsLogin(location.pathname === '/signin');
+  }, [location.pathname]);
+  // States cho các trường dữ liệu
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth(); // Lấy hàm login từ context
+  const { login } = useAuth(); //
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -479,31 +486,33 @@ const Login: React.FC = () => {
 
     try {
       if (!isLogin) {
-        // LUỒNG ĐĂNG KÝ
-        const signupData = { username: email, email, password, fullName, phone, role: ["user"] };
+        // LUỒNG ĐĂNG KÝ: Gửi toàn bộ thông tin cho BE
+        const signupData = { 
+            username: email, 
+            email, 
+            password, 
+            fullName, 
+            phone, 
+            role: ["user"] 
+        };
         await AuthService.register(signupData);
-        showToast("Đăng ký thành công! Hãy đăng nhập.", "success");
-        setIsLogin(true);
+        showToast("Đăng ký thành công! Hãy đăng nhập để tiếp tục.", "success");
+        setIsLogin(true); // Chuyển về form đăng nhập
       } else {
-        // LUỒNG ĐĂNG NHẬP
+        // LUỒNG ĐĂNG NHẬP: Sử dụng Email làm username để xác thực
         const response = await AuthService.login({ username: email, password });
-
-        // Cập nhật trạng thái toàn cục thay vì reload trang
+        
+        // Lưu thông tin vào Context & LocalStorage
         login(response.data);
+        showToast("Chào mừng bạn quay trở lại!", "success");
 
-        showToast("Chào mừng quay trở lại!", "success");
-
-        // Chuyển hướng dựa trên quyền hạn
+        // Kiểm tra quyền Admin để điều hướng
         const isAdmin = response.data?.roles?.some((r: any) => r.id === 2 || r.name === 'ROLE_ADMIN');
-        if (isAdmin) {
-          navigate('/admin');
-        } else {
-          navigate('/shop');
-        }
+        navigate(isAdmin ? '/admin' : '/shop');
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || "Thông tin đăng nhập không chính xác";
-      showToast(msg, "error");
+      const errorMsg = err.response?.data?.message || "Thông tin không chính xác, vui lòng thử lại.";
+      showToast(errorMsg, "error");
     } finally {
       setIsLoading(false);
     }
@@ -520,8 +529,9 @@ const Login: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email: Luôn cần thiết */}
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Email / Tài khoản</label>
+            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Địa chỉ Email</label>
             <input
               type="email"
               value={email}
@@ -583,14 +593,16 @@ const Login: React.FC = () => {
             disabled={isLoading}
             className="w-full py-4 bg-black text-white font-bold uppercase text-sm tracking-widest hover:opacity-80 transition-all active:scale-[0.98] flex items-center justify-center space-x-2 mt-6"
           >
-            {isLoading ? "Đang xử lý..." : isLogin ? "Đăng Nhập" : "Đăng Ký"}
+            {isLoading ? (
+               <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+            ) : isLogin ? "Đăng Nhập" : "Đăng Ký"}
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-xs font-black uppercase underline tracking-widest hover:text-gray-600"
+            onClick={() => navigate(isLogin ? '/signup' : '/signin')}
+            className="text-[11px] font-black uppercase underline tracking-widest hover:text-gray-600"
           >
             {isLogin ? 'Bạn chưa có tài khoản? Đăng ký ngay' : 'Đã có tài khoản? Đăng nhập'}
           </button>
