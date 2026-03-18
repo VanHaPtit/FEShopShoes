@@ -1,7 +1,7 @@
 
 
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ProductService } from '../services/ProductService';
 import { Product, ProductVariant } from '../types';
 import { formatCurrency } from '../utils/format';
@@ -10,6 +10,7 @@ import { useToast } from '../context/ToastContext';
 import Breadcrumb from '../components/Breadcrumb';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { HeartIcon } from '../components/SimpleIcons';
+import { useAuth } from '../context/AuthContext';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
@@ -27,6 +28,8 @@ const ProductDetail: React.FC = () => {
   const { addToCart } = useCart();
   const { showToast } = useToast();
 
+  const { user } = useAuth();
+  const navigate = useNavigate();
   useEffect(() => {
     const load = async () => {
       if (!id) return;
@@ -78,8 +81,12 @@ const ProductDetail: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!product || !selectedVariant) return;
+      if (!user) {
+      showToast("Vui lòng đăng nhập để mua sắm", "info");
+      navigate('/signin'); 
+      return;
+    }
     addToCart(product, selectedVariant);
-    showToast(`Đã thêm ${product.name} (Size: ${selectedVariant.size}) vào giỏ hàng`, "success");
   };
 
   if (loading) return <LoadingSpinner fullScreen />;
@@ -161,7 +168,7 @@ const ProductDetail: React.FC = () => {
 
             </div>
             <div className="grid grid-cols-4 gap-2">
-              {Array.from(new Set(variants.map(v => v.size))).sort((a, b) => a - b).map(size => (
+              {Array.from(new Set(variants.map(v => v.size))).sort((a, b) => Number(a) - Number(b)).map(size => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-    baseURL: `http://${window.location.hostname}:8080/api`,
+    baseURL: `http://${window.location.hostname}:8080/api/v1`,
     withCredentials: true,
 });
 
@@ -32,7 +32,6 @@ axiosClient.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             console.warn("Phiên đăng nhập hết hạn!");
             localStorage.removeItem('user');
-            // Tùy chọn: window.location.href = '/login'; 
         }
         return Promise.reject(error);
     }

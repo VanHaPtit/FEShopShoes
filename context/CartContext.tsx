@@ -4,6 +4,8 @@ import { generateId } from '../utils/format';
 import axiosClient from '../api/axiosClient';
 import PaymentService from '../services/PaymentService';
 import { useToast } from './ToastContext';
+import { useAuth } from './AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 /* ================= TYPES ================= */
 
@@ -34,9 +36,10 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   /* ===== 1. FETCH CART FROM DB ===== */
   const fetchUserCartFromDB = useCallback(async (userId?: number) => {
@@ -54,49 +57,40 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   /* ===== 2. CHECK AUTH ON LOAD ===== */
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try {
-        const parsed: AuthUser = JSON.parse(savedUser);
-        setUser(parsed);
-        fetchUserCartFromDB(parsed.id);
-      } catch {
-        localStorage.removeItem('user');
-      }
+    if (user) {
+      // Nếu có user (vừa login hoặc load trang có sẵn user)
+      fetchUserCartFromDB(user.id);
     } else {
+      // Nếu không có user (vừa logout)
+      // Load lại giỏ hàng tạm (guest cart) từ localStorage nếu muốn
       const savedCart = localStorage.getItem('adidas_cart');
       if (savedCart) {
         setCart(JSON.parse(savedCart));
+      } else {
+        setCart([]);
       }
     }
-  }, [fetchUserCartFromDB]);
+  }, [user, fetchUserCartFromDB]);
 
   /* ===== 3. ADD TO CART ===== */
   const addToCart = async (product: Product, variant: ProductVariant, quantity: number = 1) => {
-    if (user) {
-      try {
-        const payload = {
-          variant: { id: variant.id },
-          quantity,
-          price: variant.price || product.salePrice || product.basePrice
-        };
-        await axiosClient.post('/cart-items', payload);
-        await fetchUserCartFromDB(user.id);
-        showToast("Đã thêm sản phẩm vào giỏ hàng", "success");
-      } catch {
-        showToast("Không thể thêm vào giỏ hàng", "error");
-      }
-    } else {
-      const existing = cart.find(i => i.variant?.id === variant.id);
-      let newCart: CartItem[];
-      if (existing) {
-        newCart = cart.map(i => i.variant?.id === variant.id ? { ...i, quantity: i.quantity + quantity } : i);
-      } else {
-        newCart = [...cart, { id: Number(generateId()), product, variant, quantity, price: variant.price || product.salePrice || product.basePrice }];
-      }
-      setCart(newCart);
-      localStorage.setItem('adidas_cart', JSON.stringify(newCart));
-      showToast("Đã thêm vào giỏ hàng (Khách)", "info");
+    if (!user) {
+      showToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng", "info");
+      // Tùy chọn: Chuyển hướng người dùng sang trang signin sau 1.5s
+      setTimeout(() => navigate('/signin'), 1500);
+      return; // Dừng hàm tại đây, không cho chạy tiếp xuống dưới
+    }
+    try {
+      const payload = {
+        variant: { id: variant.id },
+        quantity,
+        price: variant.price || product.salePrice || product.basePrice
+      };
+      await axiosClient.post('/cart-items', payload);
+      await fetchUserCartFromDB(user.id);
+      showToast("Đã thêm sản phẩm vào giỏ hàng", "success");
+    } catch {
+      showToast("Không thể thêm vào giỏ hàng", "error");
     }
   };
 

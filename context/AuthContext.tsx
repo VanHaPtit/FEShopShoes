@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
     user: User | null;
@@ -13,6 +14,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const savedUser = localStorage.getItem('user');
@@ -25,11 +27,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const login = (userData: any) => {
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
+        navigate('/');
     };
 
     const logout = () => {
         localStorage.removeItem('user');
         setUser(null);
+        navigate('/signin');
     };
 
     return (
