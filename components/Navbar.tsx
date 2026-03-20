@@ -252,7 +252,7 @@ const Navbar: React.FC = () => {
 
       <nav className="border-b border-gray-100">
         <div className="hidden lg:flex max-w-[1400px] mx-auto px-10 justify-end items-center space-x-6 h-8 text-[11px] text-gray-600 font-medium">
-          <Link to="/orders" className="hover:underline">Đơn hàng</Link>
+          {/* <Link to="/orders" className="hover:underline">Đơn hàng</Link> */}
 
           {user ? (
             <>

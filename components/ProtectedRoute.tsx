@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // 1. Dùng hook của bạn
 import LoadingSpinner from './LoadingSpinner';
 
@@ -8,7 +8,7 @@ const ProtectedRoute: React.FC = () => {
 
     // 3. Đợi cho đến khi Context load xong dữ liệu từ localStorage
     if (isLoading) {
-        return <LoadingSpinner fullScreen />; 
+        return <LoadingSpinner fullScreen />;
     }
 
     // 4. Nếu chưa đăng nhập, đá về trang signin
@@ -23,6 +23,7 @@ const ProtectedRoute: React.FC = () => {
         alert("Bạn không có quyền truy cập khu vực này!");
         return <Navigate to="/" replace />;
     }
+
 
     // 6. Nếu là Admin, cho phép vào trang AdminDashboard (Outlet)
     return <Outlet />;

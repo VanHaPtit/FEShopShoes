@@ -1,35 +1,71 @@
-
-import React, { useState } from 'react';
-import { Layers, Plus, Edit3, Trash2, X, Image as ImageIcon, Save } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Layers, Plus, Edit3, Trash2, X, Image as ImageIcon, Save, Upload } from 'lucide-react';
 import { Category } from '../typesAdmin';
 
 interface CategoryManagerProps {
     categories: Category[];
-    onSave: (cat: Category) => void;
+    // Sửa lại type để nhận FormData hoặc xử lý logic upload tại đây
+    onSave: (data: FormData) => void;
     onDelete: (id: number) => void;
 }
 
 const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, onDelete }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingCat, setEditingCat] = useState<Category | null>(null);
-    const [formData, setFormData] = useState<Category>({ name: '', image: '' });
+    const [name, setName] = useState('');
+    const [file, setFile] = useState<File | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleEdit = (cat: Category) => {
         setEditingCat(cat);
-        setFormData(cat);
+        setName(cat.name);
+        setPreview(cat.image || null); // Hiển thị ảnh cũ nếu có
+        setFile(null);
         setIsFormOpen(true);
     };
 
     const handleAddNew = () => {
         setEditingCat(null);
-        setFormData({ name: '', image: '' });
+        setName('');
+        setFile(null);
+        setPreview(null);
         setIsFormOpen(true);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            setFile(selectedFile);
+            setPreview(URL.createObjectURL(selectedFile)); // Tạo preview tạm thời
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(editingCat ? { ...formData, id: editingCat.id } : formData);
+
+        const formData = new FormData();
+
+        // Tạo object category để gửi dưới dạng JSON Blob (Khớp với @RequestPart của Spring Boot)
+        const categoryData = {
+            id: editingCat?.id || null,
+            name: name,
+        };
+
+        formData.append(
+            'category',
+            new Blob([JSON.stringify(categoryData)], { type: 'application/json' })
+        );
+
+        // Thêm file ảnh (Khớp với @RequestPart("file") của Spring Boot)
+        if (file) {
+            formData.append('file', file);
+        }
+
+        onSave(formData);
         setIsFormOpen(false);
+        // Clean up URL preview để tránh rò rỉ bộ nhớ
+        if (preview && file) URL.revokeObjectURL(preview);
     };
 
     return (
@@ -37,7 +73,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900">Categories</h2>
-                    <p className="text-slate-500">Organize your products into meaningful groups</p>
+                    <p className="text-slate-500">Quản lý danh mục sản phẩm và hình ảnh đại diện</p>
                 </div>
                 <button
                     onClick={handleAddNew}
@@ -84,30 +120,68 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                                 <X className="w-6 h-6 text-slate-400" />
                             </button>
                         </div>
+
                         <div className="space-y-4">
+                            {/* Input Tên Danh Mục */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Category Name</label>
                                 <input
                                     type="text"
                                     required
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
                                     className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Ví dụ: Giày Chạy Bộ"
                                 />
                             </div>
+
+                            {/* Khu Vực Upload Ảnh */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Image URL</label>
-                                <input
-                                    type="text"
-                                    value={formData.image}
-                                    onChange={e => setFormData({ ...formData, image: e.target.value })}
-                                    className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Category Image</label>
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 transition-colors relative group"
+                                >
+                                    {preview ? (
+                                        <div className="relative w-full h-32">
+                                            <img src={preview} alt="Preview" className="w-full h-full object-contain" />
+                                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
+                                                <Upload className="text-white w-8 h-8" />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1 text-center">
+                                            <Upload className="mx-auto h-10 w-10 text-slate-400" />
+                                            <div className="flex text-sm text-slate-600">
+                                                <span className="font-semibold text-blue-600">Click to upload image</span>
+                                            </div>
+                                            <p className="text-xs text-slate-500">PNG, JPG, GIF up to 10MB</p>
+                                        </div>
+                                    )}
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        required={!editingCat} // Chỉ bắt buộc khi tạo mới
+                                    />
+                                </div>
                             </div>
                         </div>
+
                         <div className="mt-8 flex gap-3">
-                            <button type="button" onClick={() => setIsFormOpen(false)} className="flex-1 px-4 py-2 border border-slate-200 rounded-xl font-semibold">Cancel</button>
-                            <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 flex items-center justify-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsFormOpen(false)}
+                                className="flex-1 px-4 py-2 border border-slate-200 rounded-xl font-semibold hover:bg-slate-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"
+                            >
                                 <Save className="w-4 h-4" /> Save
                             </button>
                         </div>

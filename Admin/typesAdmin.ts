@@ -7,9 +7,9 @@ export enum Gender {
 
 export enum OrderStatus {
     PENDING = 'PENDING',
-    CONFIRMED = 'CONFIRMED',
-    SHIPPING = 'SHIPPING',
-    COMPLETED = 'COMPLETED',
+    PAID = 'PAID',
+    SHIPPED = 'SHIPPED',
+    DELIVERED = 'DELIVERED',
     CANCELLED = 'CANCELLED'
 }
 
@@ -49,30 +49,30 @@ export interface User {
 
 export interface ProductVariant {
     id?: number;
-    size: number;
+    size: number;    // Integer
     color: string;
-    stock: number;
-    price: number;
-    product?: Product;
+    stock: number;    // Integer
+    price: number;    // Double
+    version?: number;    // @Version field - đừng tự set
 }
 
 export interface Product {
-    id?: number;
+    id?: number;  // Long
     name: string;
     description: string;
-    basePrice: number;
-    salePrice?: number;
-    totalSold: number;
-    category: Category | null;
-    brand: Brand | null;
+    basePrice: number;  // Double
+    salePrice?: number | null;
+    totalSold: number;  // Integer, default 0
+    category?: Category | null;
+    brand?: Brand | null;
     images: string[];
     slug: string;
     active: boolean;
-    gender: string;
+    gender: 'MEN' | 'WOMEN' | 'UNISEX' | string;
     material: string;
     soleType: string;
     origin: string;
-    variants: ProductVariant[];
+    variants?: ProductVariant[];  // loaded separately via /api/v1/variant/product/{id}
 }
 
 export interface OrderItem {
@@ -100,3 +100,5 @@ export interface DashboardStats {
     totalRevenue: number;
     lowStockItems: number;
 }
+
+
