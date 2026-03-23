@@ -1,11 +1,10 @@
 
-// import React, { useState } from 'react';
+// import React, { useState, useMemo } from 'react';
 // import { Link, useNavigate } from 'react-router-dom';
 // import { useCart } from '../context/CartContext';
 // import { formatCurrency } from '../utils/format';
 // import { TrashIcon } from '../components/SimpleIcons';
-// import { CreditCard, Truck, Wallet, X, ChevronRight, CheckCircle2 } from 'lucide-react';
-// // Import axiosClient đã cấu hình interceptor của bạn
+// import { CreditCard, Truck, Wallet, X, CheckCircle2 } from 'lucide-react';
 // import axiosClient from '../api/axiosClient';
 
 // // ─── Types ────────────────────────────────────────────────────────────────────
@@ -74,7 +73,9 @@
 //               key={option.id}
 //               onClick={() => setSelected(option.id)}
 //               className={`w-full flex items-center gap-4 p-4 border-2 transition-all text-left relative
-//                 ${selected === option.id ? 'border-[#5ecad1] bg-[#5ecad1] text-white' : 'border-gray-200 hover:border-[#5ecad1] hover:bg-[#5ecad1]/5'}`}
+//                 ${selected === option.id
+//                   ? 'border-[#5ecad1] bg-[#5ecad1] text-white'
+//                   : 'border-gray-200 hover:border-[#5ecad1] hover:bg-[#5ecad1]/5'}`}
 //             >
 //               <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center border
 //                 ${selected === option.id ? 'border-white/30 bg-white/20' : 'border-gray-200 bg-gray-50'}`}>
@@ -84,31 +85,61 @@
 //                 <div className="flex items-center gap-2 flex-wrap">
 //                   <span className="font-bold uppercase text-sm">{option.label}</span>
 //                   {option.badge && (
-//                     <span className={`text-[9px] font-black px-1.5 py-0.5 ${selected === option.id ? 'bg-white text-[#5ecad1]' : 'bg-black text-white'}`}>
+//                     <span className={`text-[9px] font-black px-1.5 py-0.5 ${selected === option.id ? 'bg-white text-[#5ecad1]' : 'bg-black text-white'
+//                       }`}>
 //                       {option.badge}
 //                     </span>
 //                   )}
 //                 </div>
-//                 <p className={`text-xs mt-0.5 ${selected === option.id ? 'text-white/80' : 'text-gray-500'}`}>{option.description}</p>
+//                 <p className={`text-xs mt-0.5 ${selected === option.id ? 'text-white/80' : 'text-gray-500'}`}>
+//                   {option.description}
+//                 </p>
 //               </div>
 //               {selected === option.id && <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />}
 //             </button>
 //           ))}
 //         </div>
 
-//         <div className="p-5 border-t-2 border-black space-y-3">
+//         <div className="p-5 border-t-2 border-black">
 //           <button
 //             onClick={() => selected && onConfirm(selected)}
 //             disabled={!selected || isLoading}
 //             className="w-full bg-black text-white py-4 font-bold uppercase text-sm tracking-widest hover:bg-gray-900 flex items-center justify-center gap-3 disabled:bg-gray-200"
 //           >
-//             {isLoading ? <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white" /> : "XÁC NHẬN THANH TOÁN"}
+//             {isLoading
+//               ? <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white" />
+//               : "XÁC NHẬN THANH TOÁN"
+//             }
 //           </button>
 //         </div>
 //       </div>
 //     </div>
 //   );
 // };
+
+// // ─── Custom Checkbox ───────────────────────────────────────────────────────────
+
+// const Checkbox: React.FC<{
+//   checked: boolean;
+//   onChange: () => void;
+//   disabled?: boolean;
+// }> = ({ checked, onChange, disabled }) => (
+//   <button
+//     onClick={onChange}
+//     disabled={disabled}
+//     className={`flex-shrink-0 w-5 h-5 border-2 transition-all flex items-center justify-center
+//       ${checked ? 'bg-black border-black' : 'bg-white border-gray-300 hover:border-black'}
+//       ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+//     aria-checked={checked}
+//     role="checkbox"
+//   >
+//     {checked && (
+//       <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+//         <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+//       </svg>
+//     )}
+//   </button>
+// );
 
 // // ─── Main Cart Component ───────────────────────────────────────────────────────
 
@@ -118,95 +149,116 @@
 //     cart,
 //     removeFromCart,
 //     updateQuantity,
-//     totalAmount,
-//     shippingFee,
-//     finalAmount,
+//     shippingFee: contextShippingFee,
 //     isLoading: cartLoading,
-//     clearCart
 //   } = useCart();
+
+//   // ── Selection state — mặc định tích hết ──────────────────────────────────
+//   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(
+//     () => new Set(cart.map((i) => i.id))
+//   );
+
+//   const toggleItem = (id: number | string) => {
+//     setSelectedIds((prev) => {
+//       const next = new Set(prev);
+//       next.has(id) ? next.delete(id) : next.add(id);
+//       return next;
+//     });
+//   };
+
+//   const allChecked = cart.length > 0 && cart.every((i) => selectedIds.has(i.id));
+//   const someChecked = cart.some((i) => selectedIds.has(i.id));
+
+//   const toggleAll = () => {
+//     setSelectedIds(allChecked ? new Set() : new Set(cart.map((i) => i.id)));
+//   };
+
+//   // ── Chỉ tính tổng từ item được chọn (đơn giá × số lượng) ─────────────────
+//   const selectedItems = useMemo(
+//     () => cart.filter((i) => selectedIds.has(i.id)),
+//     [cart, selectedIds]
+//   );
+
+//   const selectedSubtotal = useMemo(
+//     () => selectedItems.reduce((sum, i) => sum + (i.variant?.price || 0) * i.quantity, 0),
+//     [selectedItems]
+//   );
+
+//   const SHIPPING_THRESHOLD = 500000;
+//   const selectedShippingFee =
+//     selectedItems.length === 0
+//       ? 0
+//       : selectedSubtotal >= SHIPPING_THRESHOLD
+//         ? 0
+//         : contextShippingFee;
+
+//   const selectedFinalAmount = selectedSubtotal + selectedShippingFee;
 
 //   const [showPaymentModal, setShowPaymentModal] = useState(false);
 //   const [isProcessing, setIsProcessing] = useState(false);
+//   const totalLoading = cartLoading || isProcessing;
 
-//   // Helper để chuẩn bị dữ liệu gửi lên Backend (khớp với Entity Order trong Spring)
-//   const prepareOrderData = (paymentMethod: PaymentMethod) => {
-//     return {
-//       totalPrice: finalAmount,
-//       status: "PENDING",
-//       paymentMethod: paymentMethod,
-//       // Lưu ý: BE cần list OrderItems, hãy ánh xạ từ cart
-//       orderItems: cart.map(item => ({
-//         variant: { id: item.variant.id },
-//         quantity: item.quantity,
-//         price: item.variant.price
-//       }))
-//     };
-//   };
+//   const prepareOrderData = (paymentMethod: PaymentMethod) => ({
+//     totalPrice: selectedFinalAmount,
+//     status: 'PENDING',
+//     paymentMethod,
+//     items: selectedItems.map((item) => ({
+//       variant: { id: item.variant.id },
+//       quantity: item.quantity,
+//       price: item.variant.price,
+//     })),
+//   });
 
 //   const handleConfirmPayment = async (method: PaymentMethod) => {
 //     setIsProcessing(true);
 //     const orderData = prepareOrderData(method);
-
 //     try {
 //       switch (method) {
-//         // ── 1. THANH TOÁN COD ────────────────────────────────────────────────
 //         case 'COD': {
-//           // Gọi API tạo đơn hàng thông thường
 //           const response = await axiosClient.post('/orders', orderData);
 //           const orderNumber = response.data.orderNumber;
-//           clearCart(); // Xóa giỏ hàng local
+//           selectedItems.forEach((item) => removeFromCart(item.id));
 //           navigate(`/order-success?orderNumber=${orderNumber}`);
 //           break;
 //         }
-
-//         // ── 2. THANH TOÁN VNPAY ──────────────────────────────────────────────
 //         case 'VNPAY': {
-//           // Bước 1: Tạo đơn hàng để lấy orderNumber
 //           const orderRes = await axiosClient.post('/orders', orderData);
-//           const orderNumber = orderRes.data.orderNumber;
+//           const orderNumber = orderRes.data?.orderNumber || orderRes.data?.data?.orderNumber;
 
-//           // Bước 2: Gọi PaymentController của bạn (GET /api/v1/payment/vn-pay)
-//           const vnPayRes = await axiosClient.get(`/payment/vn-pay`, {
-//             params: { orderNumber }
+//           // Lấy tổng tiền (đảm bảo là số nguyên)
+//           const amount = Math.round(selectedFinalAmount);
+
+//           if (!orderNumber) throw new Error('Không có mã đơn hàng');
+
+//           // TRUYỀN CẢ orderNumber VÀ amount
+//           const vnPayRes = await axiosClient.get('/payment/vn-pay', {
+//             params: {
+//               orderNumber: orderNumber,
+//               amount: amount
+//             }
 //           });
 
-//           // VNPayResponse nằm trong field 'data' của ResponseObject
-//           const paymentUrl = vnPayRes.data.data?.paymentUrl;
-//           if (paymentUrl) {
-//             window.location.href = paymentUrl;
-//           } else {
-//             throw new Error("Không nhận được link thanh toán VNPay");
-//           }
+//           const paymentUrl = vnPayRes.data?.paymentUrl || vnPayRes.data?.data?.paymentUrl || vnPayRes.data;
+//           if (paymentUrl) window.location.href = paymentUrl;
 //           break;
 //         }
-
-//         // ── 3. THANH TOÁN PAYPAL ─────────────────────────────────────────────
 //         case 'PAYPAL': {
-//           // Theo Controller của bạn: POST /api/v1/paypal nhận thẳng @RequestBody Order
-//           // Và trả về ResponseEntity<String> là Approval URL
 //           const response = await axiosClient.post('/paypal', orderData);
-
-//           const approvalUrl = response.data; // Vì trả về String trực tiếp
-//           if (approvalUrl && typeof approvalUrl === 'string') {
-//             window.location.href = approvalUrl;
-//           } else {
-//             throw new Error("Không nhận được link thanh toán PayPal");
-//           }
+//           const approvalUrl = response.data;
+//           if (approvalUrl && typeof approvalUrl === 'string') window.location.href = approvalUrl;
+//           else throw new Error('Không nhận được link thanh toán PayPal');
 //           break;
 //         }
 //       }
 //     } catch (error: any) {
 //       console.error('[Payment Error]', error);
-//       const msg = error.response?.data?.message || error.message || "Lỗi xử lý đơn hàng";
-//       alert(msg);
+//       alert(error.response?.data?.message || error.message || 'Lỗi xử lý đơn hàng');
 //     } finally {
 //       setIsProcessing(false);
 //     }
 //   };
 
-//   // ── Render ──────────────────────────────────────────────────────────────────
-
-//   const totalLoading = cartLoading || isProcessing;
+//   // ── Empty / Loading states ────────────────────────────────────────────────
 
 //   if (cartLoading && cart.length === 0) {
 //     return (
@@ -228,6 +280,8 @@
 //     );
 //   }
 
+//   // ── Main render ───────────────────────────────────────────────────────────
+
 //   return (
 //     <>
 //       {showPaymentModal && (
@@ -235,7 +289,7 @@
 //           onClose={() => setShowPaymentModal(false)}
 //           onConfirm={handleConfirmPayment}
 //           isLoading={totalLoading}
-//           finalAmount={finalAmount}
+//           finalAmount={selectedFinalAmount}
 //         />
 //       )}
 
@@ -243,70 +297,179 @@
 //         <h1 className="text-4xl font-black italic uppercase tracking-tighter mb-10">GIỎ HÀNG CỦA BẠN</h1>
 
 //         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-//           {/* Cart Items */}
-//           <div className="lg:col-span-8 space-y-6">
-//             {cart.map((item) => (
-//               <div key={item.id} className="flex flex-col sm:flex-row border-b border-gray-100 pb-6">
-//                 <div className="w-full sm:w-40 aspect-square bg-gray-100 flex-shrink-0">
-//                   <img
-//                     src={item.variant?.product?.images?.[0] || 'https://placehold.co/400x400?text=No+Image'}
-//                     alt={item.variant?.product?.name}
-//                     className="w-full h-full object-cover"
-//                   />
-//                 </div>
-//                 <div className="flex-grow sm:ml-6 mt-4 sm:mt-0 flex flex-col justify-between">
-//                   <div className="flex justify-between items-start">
-//                     <div className="space-y-1">
-//                       <h3 className="font-bold uppercase text-lg italic">{item.variant?.product?.name}</h3>
-//                       <p className="text-[12px] font-bold uppercase text-gray-500">
-//                         Màu: {item.variant?.color} | Size: {item.variant?.size}
-//                       </p>
-//                       <div className="flex items-center space-x-4 mt-4">
-//                         <div className="flex items-center border border-black h-10">
-//                           <button onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1 || totalLoading} className="px-3">-</button>
-//                           <span className="w-10 text-center font-bold text-xs">{item.quantity}</span>
-//                           <button onClick={() => updateQuantity(item.id, item.quantity + 1)} disabled={totalLoading} className="px-3">+</button>
+
+//           {/* ── Cart Items ── */}
+//           <div className="lg:col-span-8 space-y-0">
+
+//             {/* Select All header */}
+//             <div className="flex items-center gap-3 pb-4 border-b-2 border-black mb-2">
+//               <button
+//                 onClick={toggleAll}
+//                 disabled={totalLoading}
+//                 className={`flex-shrink-0 w-5 h-5 border-2 transition-all flex items-center justify-center cursor-pointer
+//                   ${allChecked || someChecked ? 'bg-black border-black' : 'bg-white border-gray-300 hover:border-black'}`}
+//                 aria-label="Chọn tất cả"
+//               >
+//                 {allChecked ? (
+//                   <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+//                     <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+//                   </svg>
+//                 ) : someChecked ? (
+//                   <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+//                     <path d="M2 6h8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+//                   </svg>
+//                 ) : null}
+//               </button>
+//               <span className="font-bold uppercase text-xs tracking-widest text-gray-600">
+//                 Chọn tất cả ({cart.length} sản phẩm)
+//               </span>
+//               {someChecked && (
+//                 <span className="ml-auto text-[11px] font-bold uppercase tracking-widest text-gray-400">
+//                   Đã chọn {selectedItems.length}/{cart.length}
+//                 </span>
+//               )}
+//             </div>
+
+//             {/* Item list */}
+//             <div className="space-y-6">
+//               {cart.map((item) => {
+//                 const isSelected = selectedIds.has(item.id);
+//                 // Chỉ hiển thị đơn giá cố định (không nhân số lượng)
+//                 const unitPrice = item.variant?.price || 0;
+
+//                 return (
+//                   <div
+//                     key={item.id}
+//                     className={`flex flex-col sm:flex-row border-b pb-6 transition-opacity duration-200
+//                       ${isSelected ? 'opacity-100 border-gray-100' : 'opacity-40 border-gray-100'}`}
+//                   >
+//                     {/* Checkbox */}
+//                     <div className="flex items-start pt-1 pr-4 flex-shrink-0">
+//                       <Checkbox
+//                         checked={isSelected}
+//                         onChange={() => toggleItem(item.id)}
+//                         disabled={totalLoading}
+//                       />
+//                     </div>
+
+//                     {/* Image */}
+//                     <div className="w-full sm:w-40 aspect-square bg-gray-100 flex-shrink-0">
+//                       <img
+//                         src={item.variant?.product?.images?.[0] || 'https://placehold.co/400x400?text=No+Image'}
+//                         alt={item.variant?.product?.name}
+//                         className="w-full h-full object-cover"
+//                       />
+//                     </div>
+
+//                     {/* Details */}
+//                     <div className="flex-grow sm:ml-6 mt-4 sm:mt-0 flex flex-col justify-between">
+//                       <div className="flex justify-between items-start">
+//                         <div className="space-y-1">
+//                           <h3 className="font-bold uppercase text-lg italic">{item.variant?.product?.name}</h3>
+//                           <p className="text-[12px] font-bold uppercase text-gray-500">
+//                             Màu: {item.variant?.color} | Size: {item.variant?.size}
+//                           </p>
+//                           <div className="flex items-center space-x-4 mt-4">
+//                             <div className="flex items-center border border-black h-10">
+//                               <button
+//                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
+//                                 disabled={item.quantity <= 1 || totalLoading}
+//                                 className="px-3 hover:bg-gray-100 disabled:opacity-30"
+//                               >
+//                                 -
+//                               </button>
+//                               <span className="w-10 text-center font-bold text-xs">{item.quantity}</span>
+//                               <button
+//                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
+//                                 disabled={totalLoading}
+//                                 className="px-3 hover:bg-gray-100"
+//                               >
+//                                 +
+//                               </button>
+//                             </div>
+//                             <button
+//                               onClick={() => removeFromCart(item.id)}
+//                               disabled={totalLoading}
+//                               className="text-gray-400 hover:text-red-600 transition-colors"
+//                             >
+//                               <TrashIcon className="w-5 h-5" />
+//                             </button>
+//                           </div>
 //                         </div>
-//                         <button onClick={() => removeFromCart(item.id)} disabled={totalLoading} className="text-gray-400 hover:text-red-600">
-//                           <TrashIcon className="w-5 h-5" />
-//                         </button>
+
+//                         {/* Chỉ hiển thị đơn giá — không nhân số lượng */}
+//                         <div className="text-right">
+//                           <div className="font-bold text-lg">{formatCurrency(unitPrice)}</div>
+//                           {item.quantity > 1 && (
+//                             <div className="text-[11px] text-gray-400 font-medium mt-0.5">
+//                               đơn giá / sản phẩm
+//                             </div>
+//                           )}
+//                         </div>
 //                       </div>
 //                     </div>
-//                     <div className="text-right font-bold text-lg">
-//                       {formatCurrency((item.variant?.price || 0) * item.quantity)}
-//                     </div>
 //                   </div>
-//                 </div>
-//               </div>
-//             ))}
+//                 );
+//               })}
+//             </div>
 //           </div>
 
-//           {/* Order Summary */}
+//           {/* ── Order Summary ── */}
 //           <div className="lg:col-span-4">
 //             <div className="border-2 border-black p-6 space-y-6 sticky top-24">
 //               <h2 className="text-xl font-black italic uppercase tracking-tighter">TÓM TẮT ĐƠN HÀNG</h2>
-//               <div className="space-y-4 text-[13px] font-medium uppercase">
+
+//               {/* Danh sách sản phẩm được chọn với tổng từng dòng */}
+//               {selectedItems.length > 0 ? (
+//                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+//                   {selectedItems.map((item) => (
+//                     <div key={item.id} className="flex justify-between items-center text-[12px]">
+//                       <span className="text-gray-600 truncate max-w-[60%]">
+//                         {item.variant?.product?.name}
+//                         <span className="text-gray-400 ml-1">×{item.quantity}</span>
+//                       </span>
+//                       <span className="font-bold flex-shrink-0 ml-2">
+//                         {formatCurrency((item.variant?.price || 0) * item.quantity)}
+//                       </span>
+//                     </div>
+//                   ))}
+//                 </div>
+//               ) : (
+//                 <p className="text-[12px] text-gray-400 italic">Chưa có sản phẩm nào được chọn</p>
+//               )}
+
+//               <div className="space-y-4 text-[13px] font-medium uppercase border-t border-gray-100 pt-4">
 //                 <div className="flex justify-between">
 //                   <span>Tạm tính</span>
-//                   <span className="font-bold">{formatCurrency(totalAmount)}</span>
+//                   <span className="font-bold">{formatCurrency(selectedSubtotal)}</span>
 //                 </div>
 //                 <div className="flex justify-between">
 //                   <span>Vận chuyển</span>
-//                   <span className="font-bold">{shippingFee === 0 ? 'MIỄN PHÍ' : formatCurrency(shippingFee)}</span>
+//                   <span className="font-bold">
+//                     {selectedItems.length === 0
+//                       ? '—'
+//                       : selectedShippingFee === 0
+//                         ? 'MIỄN PHÍ'
+//                         : formatCurrency(selectedShippingFee)}
+//                   </span>
 //                 </div>
 //                 <hr className="border-gray-100" />
 //                 <div className="flex justify-between text-lg font-black italic">
 //                   <span>TỔNG CỘNG</span>
-//                   <span>{formatCurrency(finalAmount)}</span>
+//                   <span>{formatCurrency(selectedFinalAmount)}</span>
 //                 </div>
 //               </div>
 
 //               <button
 //                 onClick={() => setShowPaymentModal(true)}
-//                 disabled={totalLoading}
-//                 className="w-full bg-black text-white py-4 font-bold uppercase text-sm hover:bg-gray-900 transition-all flex items-center justify-center group"
+//                 disabled={totalLoading || selectedItems.length === 0}
+//                 className="w-full bg-black text-white py-4 font-bold uppercase text-sm hover:bg-gray-900 transition-all flex items-center justify-center disabled:bg-gray-200 disabled:cursor-not-allowed"
 //               >
-//                 {totalLoading ? "ĐANG XỬ LÝ..." : "THANH TOÁN"}
+//                 {totalLoading
+//                   ? 'ĐANG XỬ LÝ...'
+//                   : selectedItems.length === 0
+//                     ? 'CHƯA CHỌN SẢN PHẨM'
+//                     : `THANH TOÁN (${selectedItems.length})`}
 //               </button>
 //             </div>
 //           </div>
@@ -320,12 +483,14 @@
 
 
 
+
+
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/format';
 import { TrashIcon } from '../components/SimpleIcons';
-import { CreditCard, Truck, Wallet, X, CheckCircle2 } from 'lucide-react';
+import { CreditCard, Truck, Wallet, X, CheckCircle2, MapPin, User, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -340,14 +505,157 @@ interface PaymentOption {
   badge?: string;
 }
 
+interface ShippingInfo {
+  receiverName: string;
+  receiverPhone: string;
+  shippingAddress: string;
+}
+
+// ─── Shipping Info Modal ───────────────────────────────────────────────────────
+
+const ShippingModal: React.FC<{
+  onClose: () => void;
+  onNext: (info: ShippingInfo) => void;
+  initialData: ShippingInfo;
+  finalAmount: number;
+}> = ({ onClose, onNext, initialData, finalAmount }) => {
+  const [form, setForm] = useState<ShippingInfo>(initialData);
+  const [errors, setErrors] = useState<Partial<ShippingInfo>>({});
+
+  const validate = (): boolean => {
+    const newErrors: Partial<ShippingInfo> = {};
+    if (!form.receiverName.trim()) newErrors.receiverName = 'Vui lòng nhập họ tên người nhận';
+    if (!form.receiverPhone.trim()) {
+      newErrors.receiverPhone = 'Vui lòng nhập số điện thoại';
+    } else if (!/^(0[3|5|7|8|9])+([0-9]{8})$/.test(form.receiverPhone.trim())) {
+      newErrors.receiverPhone = 'Số điện thoại không hợp lệ';
+    }
+    if (!form.shippingAddress.trim()) newErrors.shippingAddress = 'Vui lòng nhập địa chỉ giao hàng';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validate()) onNext(form);
+  };
+
+  const inputBase =
+    'w-full border-2 border-gray-200 px-4 py-3 text-sm font-medium focus:outline-none focus:border-black transition-colors placeholder:text-gray-300';
+  const inputError = 'border-red-400 focus:border-red-500 bg-red-50';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-md border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+
+        {/* Header */}
+        <div className="flex items-center justify-between border-b-2 border-black p-5">
+          <div>
+            <h2 className="text-xl font-black italic uppercase tracking-tighter">THÔNG TIN GIAO HÀNG</h2>
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">
+              Bước 1/2 — Điền địa chỉ nhận hàng
+            </p>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <div className="p-5 space-y-4">
+
+          {/* Họ tên */}
+          <div>
+            <label className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-gray-600 mb-1.5">
+              <User className="w-3.5 h-3.5" />
+              Họ và tên người nhận *
+            </label>
+            <input
+              type="text"
+              value={form.receiverName}
+              onChange={(e) => {
+                setForm((f) => ({ ...f, receiverName: e.target.value }));
+                if (errors.receiverName) setErrors((er) => ({ ...er, receiverName: undefined }));
+              }}
+              placeholder="Nguyễn Văn A"
+              className={`${inputBase} ${errors.receiverName ? inputError : ''}`}
+            />
+            {errors.receiverName && (
+              <p className="text-[11px] text-red-500 font-medium mt-1">{errors.receiverName}</p>
+            )}
+          </div>
+
+          {/* Số điện thoại */}
+          <div>
+            <label className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-gray-600 mb-1.5">
+              <Phone className="w-3.5 h-3.5" />
+              Số điện thoại *
+            </label>
+            <input
+              type="tel"
+              value={form.receiverPhone}
+              onChange={(e) => {
+                setForm((f) => ({ ...f, receiverPhone: e.target.value }));
+                if (errors.receiverPhone) setErrors((er) => ({ ...er, receiverPhone: undefined }));
+              }}
+              placeholder="0912 345 678"
+              className={`${inputBase} ${errors.receiverPhone ? inputError : ''}`}
+            />
+            {errors.receiverPhone && (
+              <p className="text-[11px] text-red-500 font-medium mt-1">{errors.receiverPhone}</p>
+            )}
+          </div>
+
+          {/* Địa chỉ */}
+          <div>
+            <label className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-gray-600 mb-1.5">
+              <MapPin className="w-3.5 h-3.5" />
+              Địa chỉ giao hàng *
+            </label>
+            <textarea
+              value={form.shippingAddress}
+              onChange={(e) => {
+                setForm((f) => ({ ...f, shippingAddress: e.target.value }));
+                if (errors.shippingAddress) setErrors((er) => ({ ...er, shippingAddress: undefined }));
+              }}
+              placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
+              rows={3}
+              className={`${inputBase} resize-none ${errors.shippingAddress ? inputError : ''}`}
+            />
+            {errors.shippingAddress && (
+              <p className="text-[11px] text-red-500 font-medium mt-1">{errors.shippingAddress}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 border-t-2 border-black flex items-center justify-between gap-3">
+          <div className="text-[12px] text-gray-500 font-medium">
+            Tổng: <span className="text-black font-black text-sm">{formatCurrency(finalAmount)}</span>
+          </div>
+          <button
+            onClick={handleSubmit}
+            className="flex items-center gap-2 bg-black text-white px-6 py-3.5 font-bold uppercase text-xs tracking-widest hover:bg-gray-900 transition-colors"
+          >
+            TIẾP THEO
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── Payment Method Modal ──────────────────────────────────────────────────────
 
 const PaymentModal: React.FC<{
   onClose: () => void;
+  onBack: () => void;
   onConfirm: (method: PaymentMethod) => void;
   isLoading: boolean;
   finalAmount: number;
-}> = ({ onClose, onConfirm, isLoading, finalAmount }) => {
+  shippingInfo: ShippingInfo;
+}> = ({ onClose, onBack, onConfirm, isLoading, finalAmount, shippingInfo }) => {
   const [selected, setSelected] = useState<PaymentMethod | null>(null);
 
   const paymentOptions: PaymentOption[] = [
@@ -376,11 +684,14 @@ const PaymentModal: React.FC<{
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white w-full max-w-md border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+
+        {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-black p-5">
           <div>
             <h2 className="text-xl font-black italic uppercase tracking-tighter">CHỌN THANH TOÁN</h2>
             <p className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">
-              Tổng cộng: <span className="text-black font-black">{formatCurrency(finalAmount)}</span>
+              Bước 2/2 — Tổng cộng:{' '}
+              <span className="text-black font-black">{formatCurrency(finalAmount)}</span>
             </p>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-gray-100 transition-colors">
@@ -388,6 +699,27 @@ const PaymentModal: React.FC<{
           </button>
         </div>
 
+        {/* Shipping info summary */}
+        <div className="px-5 pt-4 pb-0">
+          <div className="bg-gray-50 border border-gray-200 p-3 space-y-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+              Giao đến
+            </p>
+            <div className="flex items-center gap-2 text-[12px] font-bold">
+              <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+              {shippingInfo.receiverName}
+              <span className="text-gray-400 font-medium">—</span>
+              <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+              {shippingInfo.receiverPhone}
+            </div>
+            <div className="flex items-start gap-2 text-[12px] text-gray-600">
+              <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <span>{shippingInfo.shippingAddress}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment options */}
         <div className="p-5 space-y-3">
           {paymentOptions.map((option) => (
             <button
@@ -398,16 +730,20 @@ const PaymentModal: React.FC<{
                   ? 'border-[#5ecad1] bg-[#5ecad1] text-white'
                   : 'border-gray-200 hover:border-[#5ecad1] hover:bg-[#5ecad1]/5'}`}
             >
-              <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center border
-                ${selected === option.id ? 'border-white/30 bg-white/20' : 'border-gray-200 bg-gray-50'}`}>
+              <div
+                className={`flex-shrink-0 w-10 h-10 flex items-center justify-center border
+                  ${selected === option.id ? 'border-white/30 bg-white/20' : 'border-gray-200 bg-gray-50'}`}
+              >
                 {option.icon}
               </div>
               <div className="flex-grow min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-bold uppercase text-sm">{option.label}</span>
                   {option.badge && (
-                    <span className={`text-[9px] font-black px-1.5 py-0.5 ${selected === option.id ? 'bg-white text-[#5ecad1]' : 'bg-black text-white'
-                      }`}>
+                    <span
+                      className={`text-[9px] font-black px-1.5 py-0.5
+                        ${selected === option.id ? 'bg-white text-[#5ecad1]' : 'bg-black text-white'}`}
+                    >
                       {option.badge}
                     </span>
                   )}
@@ -421,16 +757,26 @@ const PaymentModal: React.FC<{
           ))}
         </div>
 
-        <div className="p-5 border-t-2 border-black">
+        {/* Footer */}
+        <div className="p-5 border-t-2 border-black flex gap-3">
+          <button
+            onClick={onBack}
+            disabled={isLoading}
+            className="flex items-center gap-2 border-2 border-black px-4 py-3.5 font-bold uppercase text-xs tracking-widest hover:bg-gray-100 transition-colors disabled:opacity-40"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            QUAY LẠI
+          </button>
           <button
             onClick={() => selected && onConfirm(selected)}
             disabled={!selected || isLoading}
-            className="w-full bg-black text-white py-4 font-bold uppercase text-sm tracking-widest hover:bg-gray-900 flex items-center justify-center gap-3 disabled:bg-gray-200"
+            className="flex-1 bg-black text-white py-3.5 font-bold uppercase text-sm tracking-widest hover:bg-gray-900 flex items-center justify-center gap-3 disabled:bg-gray-200 transition-colors"
           >
-            {isLoading
-              ? <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white" />
-              : "XÁC NHẬN THANH TOÁN"
-            }
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white" />
+            ) : (
+              'XÁC NHẬN THANH TOÁN'
+            )}
           </button>
         </div>
       </div>
@@ -461,6 +807,10 @@ const Checkbox: React.FC<{
     )}
   </button>
 );
+
+// ─── Modal step state ──────────────────────────────────────────────────────────
+
+type ModalStep = 'closed' | 'shipping' | 'payment';
 
 // ─── Main Cart Component ───────────────────────────────────────────────────────
 
@@ -494,7 +844,7 @@ const Cart: React.FC = () => {
     setSelectedIds(allChecked ? new Set() : new Set(cart.map((i) => i.id)));
   };
 
-  // ── Chỉ tính tổng từ item được chọn (đơn giá × số lượng) ─────────────────
+  // ── Selected items & totals ───────────────────────────────────────────────
   const selectedItems = useMemo(
     () => cart.filter((i) => selectedIds.has(i.id)),
     [cart, selectedIds]
@@ -515,21 +865,40 @@ const Cart: React.FC = () => {
 
   const selectedFinalAmount = selectedSubtotal + selectedShippingFee;
 
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  // ── Modal state ───────────────────────────────────────────────────────────
+  const [modalStep, setModalStep] = useState<ModalStep>('closed');
+  const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
+    receiverName: '',
+    receiverPhone: '',
+    shippingAddress: '',
+  });
   const [isProcessing, setIsProcessing] = useState(false);
   const totalLoading = cartLoading || isProcessing;
 
+  const handleOpenCheckout = () => setModalStep('shipping');
+  const handleCloseAll = () => setModalStep('closed');
+  const handleShippingNext = (info: ShippingInfo) => {
+    setShippingInfo(info);
+    setModalStep('payment');
+  };
+  const handlePaymentBack = () => setModalStep('shipping');
+
+  // ── Build order payload ───────────────────────────────────────────────────
   const prepareOrderData = (paymentMethod: PaymentMethod) => ({
     totalPrice: selectedFinalAmount,
     status: 'PENDING',
     paymentMethod,
-    orderItems: selectedItems.map((item) => ({
+    receiverName: shippingInfo.receiverName,
+    receiverPhone: shippingInfo.receiverPhone,
+    shippingAddress: shippingInfo.shippingAddress,
+    items: selectedItems.map((item) => ({
       variant: { id: item.variant.id },
       quantity: item.quantity,
       price: item.variant.price,
     })),
   });
 
+  // ── Payment handler ───────────────────────────────────────────────────────
   const handleConfirmPayment = async (method: PaymentMethod) => {
     setIsProcessing(true);
     const orderData = prepareOrderData(method);
@@ -544,17 +913,25 @@ const Cart: React.FC = () => {
         }
         case 'VNPAY': {
           const orderRes = await axiosClient.post('/orders', orderData);
-          const orderNumber = orderRes.data.orderNumber;
-          const vnPayRes = await axiosClient.get('/payment/vn-pay', { params: { orderNumber } });
-          const paymentUrl = vnPayRes.data.data?.paymentUrl;
+          const orderNumber =
+            orderRes.data?.orderNumber || orderRes.data?.data?.orderNumber;
+          const amount = Math.round(selectedFinalAmount);
+          if (!orderNumber) throw new Error('Không có mã đơn hàng');
+          const vnPayRes = await axiosClient.get('/payment/vn-pay', {
+            params: { orderNumber, amount },
+          });
+          const paymentUrl =
+            vnPayRes.data?.paymentUrl ||
+            vnPayRes.data?.data?.paymentUrl ||
+            vnPayRes.data;
           if (paymentUrl) window.location.href = paymentUrl;
-          else throw new Error('Không nhận được link thanh toán VNPay');
           break;
         }
         case 'PAYPAL': {
           const response = await axiosClient.post('/paypal', orderData);
           const approvalUrl = response.data;
-          if (approvalUrl && typeof approvalUrl === 'string') window.location.href = approvalUrl;
+          if (approvalUrl && typeof approvalUrl === 'string')
+            window.location.href = approvalUrl;
           else throw new Error('Không nhận được link thanh toán PayPal');
           break;
         }
@@ -582,7 +959,10 @@ const Cart: React.FC = () => {
     return (
       <div className="max-w-[1400px] mx-auto px-4 py-20 text-center space-y-6">
         <h1 className="text-5xl font-black italic uppercase tracking-tighter">GIỎ HÀNG TRỐNG</h1>
-        <Link to="/shop" className="inline-block bg-black text-white px-10 py-4 font-bold uppercase text-sm hover:opacity-80">
+        <Link
+          to="/shop"
+          className="inline-block bg-black text-white px-10 py-4 font-bold uppercase text-sm hover:opacity-80"
+        >
           MUA SẮM NGAY
         </Link>
       </div>
@@ -593,17 +973,32 @@ const Cart: React.FC = () => {
 
   return (
     <>
-      {showPaymentModal && (
-        <PaymentModal
-          onClose={() => setShowPaymentModal(false)}
-          onConfirm={handleConfirmPayment}
-          isLoading={totalLoading}
+      {/* Step 1: Shipping info */}
+      {modalStep === 'shipping' && (
+        <ShippingModal
+          onClose={handleCloseAll}
+          onNext={handleShippingNext}
+          initialData={shippingInfo}
           finalAmount={selectedFinalAmount}
         />
       )}
 
+      {/* Step 2: Payment method */}
+      {modalStep === 'payment' && (
+        <PaymentModal
+          onClose={handleCloseAll}
+          onBack={handlePaymentBack}
+          onConfirm={handleConfirmPayment}
+          isLoading={totalLoading}
+          finalAmount={selectedFinalAmount}
+          shippingInfo={shippingInfo}
+        />
+      )}
+
       <div className="max-w-[1400px] mx-auto px-4 lg:px-10 py-10">
-        <h1 className="text-4xl font-black italic uppercase tracking-tighter mb-10">GIỎ HÀNG CỦA BẠN</h1>
+        <h1 className="text-4xl font-black italic uppercase tracking-tighter mb-10">
+          GIỎ HÀNG CỦA BẠN
+        </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
@@ -643,7 +1038,6 @@ const Cart: React.FC = () => {
             <div className="space-y-6">
               {cart.map((item) => {
                 const isSelected = selectedIds.has(item.id);
-                // Chỉ hiển thị đơn giá cố định (không nhân số lượng)
                 const unitPrice = item.variant?.price || 0;
 
                 return (
@@ -674,7 +1068,9 @@ const Cart: React.FC = () => {
                     <div className="flex-grow sm:ml-6 mt-4 sm:mt-0 flex flex-col justify-between">
                       <div className="flex justify-between items-start">
                         <div className="space-y-1">
-                          <h3 className="font-bold uppercase text-lg italic">{item.variant?.product?.name}</h3>
+                          <h3 className="font-bold uppercase text-lg italic">
+                            {item.variant?.product?.name}
+                          </h3>
                           <p className="text-[12px] font-bold uppercase text-gray-500">
                             Màu: {item.variant?.color} | Size: {item.variant?.size}
                           </p>
@@ -687,7 +1083,9 @@ const Cart: React.FC = () => {
                               >
                                 -
                               </button>
-                              <span className="w-10 text-center font-bold text-xs">{item.quantity}</span>
+                              <span className="w-10 text-center font-bold text-xs">
+                                {item.quantity}
+                              </span>
                               <button
                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                 disabled={totalLoading}
@@ -706,7 +1104,6 @@ const Cart: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Chỉ hiển thị đơn giá — không nhân số lượng */}
                         <div className="text-right">
                           <div className="font-bold text-lg">{formatCurrency(unitPrice)}</div>
                           {item.quantity > 1 && (
@@ -728,7 +1125,6 @@ const Cart: React.FC = () => {
             <div className="border-2 border-black p-6 space-y-6 sticky top-24">
               <h2 className="text-xl font-black italic uppercase tracking-tighter">TÓM TẮT ĐƠN HÀNG</h2>
 
-              {/* Danh sách sản phẩm được chọn với tổng từng dòng */}
               {selectedItems.length > 0 ? (
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {selectedItems.map((item) => (
@@ -770,15 +1166,20 @@ const Cart: React.FC = () => {
               </div>
 
               <button
-                onClick={() => setShowPaymentModal(true)}
+                onClick={handleOpenCheckout}
                 disabled={totalLoading || selectedItems.length === 0}
-                className="w-full bg-black text-white py-4 font-bold uppercase text-sm hover:bg-gray-900 transition-all flex items-center justify-center disabled:bg-gray-200 disabled:cursor-not-allowed"
+                className="w-full bg-black text-white py-4 font-bold uppercase text-sm hover:bg-gray-900 transition-all flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
               >
-                {totalLoading
-                  ? 'ĐANG XỬ LÝ...'
-                  : selectedItems.length === 0
-                    ? 'CHƯA CHỌN SẢN PHẨM'
-                    : `THANH TOÁN (${selectedItems.length})`}
+                {totalLoading ? (
+                  'ĐANG XỬ LÝ...'
+                ) : selectedItems.length === 0 ? (
+                  'CHƯA CHỌN SẢN PHẨM'
+                ) : (
+                  <>
+                    THANH TOÁN ({selectedItems.length})
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           </div>

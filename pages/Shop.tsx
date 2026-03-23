@@ -90,7 +90,6 @@ const Shop: React.FC = () => {
             <span className="text-xl ml-4 font-normal not-italic text-gray-400">({sortedProducts.length})</span>
           </h1>
         </div>
-
         <div className="flex items-center space-x-4 w-full md:w-auto">
           <label className="text-xs font-bold uppercase tracking-widest hidden sm:block">Sắp xếp:</label>
           <select
