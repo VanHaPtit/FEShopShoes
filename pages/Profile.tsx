@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
+import { ShoppingBag, User, Lock, LogOut, Package } from 'lucide-react';
 
 interface UserProfile {
     id: number;
@@ -111,17 +112,28 @@ const Profile: React.FC = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="mt-10 flex flex-col sm:flex-row gap-4">
+                        <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <button
+                                onClick={() => navigate('/profile/orders')}
+                                className="flex items-center justify-center gap-2 py-4 bg-orange-500 text-white font-bold rounded-2xl hover:bg-orange-600 transition-all active:scale-[0.98] shadow-lg shadow-orange-200"
+                            >
+                                <Package size={20} />
+                                Đơn hàng của tôi
+                            </button>
+
                             <button
                                 onClick={() => alert("Tính năng cập nhật đang được phát triển!")}
-                                className="flex-1 py-4 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 transition-all active:scale-[0.98]"
+                                className="flex items-center justify-center gap-2 py-4 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 transition-all active:scale-[0.98]"
                             >
+                                <User size={20} />
                                 Chỉnh sửa hồ sơ
                             </button>
+
                             <button
                                 onClick={() => navigate('/shop')}
-                                className="flex-1 py-4 bg-gray-100 text-gray-900 font-bold rounded-2xl hover:bg-gray-200 transition-all active:scale-[0.98]"
+                                className="flex items-center justify-center gap-2 py-4 bg-gray-100 text-gray-900 font-bold rounded-2xl hover:bg-gray-200 transition-all active:scale-[0.98]"
                             >
+                                <ShoppingBag size={20} />
                                 Tiếp tục mua sắm
                             </button>
                         </div>

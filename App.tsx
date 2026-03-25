@@ -8,6 +8,7 @@ import GeminiAssistant from './components/GeminiAssistant';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
+const UserOrders = lazy(() => import('./pages/UserOrders'));
 const Home = lazy(() => import('./pages/Home'));
 const Shop = lazy(() => import('./pages/Shop'));
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
@@ -43,6 +44,7 @@ const App: React.FC = () => {
                 <Route path="/signup" element={<Login />} />
                 <Route path="/login" element={<Navigate to="/signin" replace />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/orders" element={<UserOrders />} />
                 <Route path="/payment-callback" element={<PaymentCallback />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
