@@ -280,10 +280,10 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                         <Download className="w-4 h-4 text-emerald-500" /> Export Excel
                     </button>
                     {/* Combo button */}
-                    <button onClick={openComboPanel}
+                    {/* <button onClick={openComboPanel}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-lg shadow-amber-200">
                         <Gift className="w-4 h-4" /> Quản lý Combo
-                    </button>
+                    </button> */}
                     <button onClick={onAdd}
                         className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center gap-2 text-sm">
                         <Plus className="w-4 h-4" /> New Product
