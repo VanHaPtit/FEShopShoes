@@ -37,7 +37,7 @@ const BrandManager: React.FC<BrandManagerProps> = ({ brands, onSave, onDelete })
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900">Brands</h2>
-                    <p className="text-slate-500">Manage your collection of shoe brands</p>
+                    {/* <p className="text-slate-500">Manage your collection of shoe brands</p> */}
                 </div>
                 <button
                     onClick={handleAddNew}

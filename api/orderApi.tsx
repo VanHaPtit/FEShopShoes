@@ -5,4 +5,8 @@ export const orderApi = {
   getMyOrders: () => {
     return axiosClient.get("/orders/my-history");
   },
+  getOrderDetail: (id: number | string) => {
+    return axiosClient.get(`/orders/${id}`);
+  }
 };
+

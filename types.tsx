@@ -30,7 +30,17 @@ export interface Product {
 }
 
 
-
+export interface Review {
+    id: number;
+    userId: number;
+    orderItemId: number;
+    username: string;
+    rating: number;
+    comment: string;
+    productId: number;
+    images: string[];
+    createdAt: string;
+}
 
 export enum Gender {
     MEN = 'MEN',

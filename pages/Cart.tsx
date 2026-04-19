@@ -485,13 +485,27 @@
 
 
 
+
+
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/format';
 import { TrashIcon } from '../components/SimpleIcons';
-import { CreditCard, Truck, Wallet, X, CheckCircle2, MapPin, User, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
+import {
+  CreditCard,
+  Truck,
+  Wallet,
+  X,
+  CheckCircle2,
+  MapPin,
+  User,
+  Phone,
+  ArrowRight,
+  ArrowLeft,
+} from 'lucide-react';
 import axiosClient from '../api/axiosClient';
+import { useToast } from '../context/ToastContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -524,13 +538,15 @@ const ShippingModal: React.FC<{
 
   const validate = (): boolean => {
     const newErrors: Partial<ShippingInfo> = {};
-    if (!form.receiverName.trim()) newErrors.receiverName = 'Vui lòng nhập họ tên người nhận';
+    if (!form.receiverName.trim())
+      newErrors.receiverName = 'Vui lòng nhập họ tên người nhận';
     if (!form.receiverPhone.trim()) {
       newErrors.receiverPhone = 'Vui lòng nhập số điện thoại';
     } else if (!/^(0[3|5|7|8|9])+([0-9]{8})$/.test(form.receiverPhone.trim())) {
       newErrors.receiverPhone = 'Số điện thoại không hợp lệ';
     }
-    if (!form.shippingAddress.trim()) newErrors.shippingAddress = 'Vui lòng nhập địa chỉ giao hàng';
+    if (!form.shippingAddress.trim())
+      newErrors.shippingAddress = 'Vui lòng nhập địa chỉ giao hàng';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -551,7 +567,9 @@ const ShippingModal: React.FC<{
         {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-black p-5">
           <div>
-            <h2 className="text-xl font-black italic uppercase tracking-tighter">THÔNG TIN GIAO HÀNG</h2>
+            <h2 className="text-xl font-black italic uppercase tracking-tighter">
+              THÔNG TIN GIAO HÀNG
+            </h2>
             <p className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">
               Bước 1/2 — Điền địa chỉ nhận hàng
             </p>
@@ -616,7 +634,8 @@ const ShippingModal: React.FC<{
               value={form.shippingAddress}
               onChange={(e) => {
                 setForm((f) => ({ ...f, shippingAddress: e.target.value }));
-                if (errors.shippingAddress) setErrors((er) => ({ ...er, shippingAddress: undefined }));
+                if (errors.shippingAddress)
+                  setErrors((er) => ({ ...er, shippingAddress: undefined }));
               }}
               placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
               rows={3}
@@ -631,7 +650,8 @@ const ShippingModal: React.FC<{
         {/* Footer */}
         <div className="p-5 border-t-2 border-black flex items-center justify-between gap-3">
           <div className="text-[12px] text-gray-500 font-medium">
-            Tổng: <span className="text-black font-black text-sm">{formatCurrency(finalAmount)}</span>
+            Tổng:{' '}
+            <span className="text-black font-black text-sm">{formatCurrency(finalAmount)}</span>
           </div>
           <button
             onClick={handleSubmit}
@@ -728,11 +748,15 @@ const PaymentModal: React.FC<{
               className={`w-full flex items-center gap-4 p-4 border-2 transition-all text-left relative
                 ${selected === option.id
                   ? 'border-[#5ecad1] bg-[#5ecad1] text-white'
-                  : 'border-gray-200 hover:border-[#5ecad1] hover:bg-[#5ecad1]/5'}`}
+                  : 'border-gray-200 hover:border-[#5ecad1] hover:bg-[#5ecad1]/5'
+                }`}
             >
               <div
                 className={`flex-shrink-0 w-10 h-10 flex items-center justify-center border
-                  ${selected === option.id ? 'border-white/30 bg-white/20' : 'border-gray-200 bg-gray-50'}`}
+                  ${selected === option.id
+                    ? 'border-white/30 bg-white/20'
+                    : 'border-gray-200 bg-gray-50'
+                  }`}
               >
                 {option.icon}
               </div>
@@ -742,17 +766,25 @@ const PaymentModal: React.FC<{
                   {option.badge && (
                     <span
                       className={`text-[9px] font-black px-1.5 py-0.5
-                        ${selected === option.id ? 'bg-white text-[#5ecad1]' : 'bg-black text-white'}`}
+                        ${selected === option.id
+                          ? 'bg-white text-[#5ecad1]'
+                          : 'bg-black text-white'
+                        }`}
                     >
                       {option.badge}
                     </span>
                   )}
                 </div>
-                <p className={`text-xs mt-0.5 ${selected === option.id ? 'text-white/80' : 'text-gray-500'}`}>
+                <p
+                  className={`text-xs mt-0.5 ${selected === option.id ? 'text-white/80' : 'text-gray-500'
+                    }`}
+                >
                   {option.description}
                 </p>
               </div>
-              {selected === option.id && <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />}
+              {selected === option.id && (
+                <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
+              )}
             </button>
           ))}
         </div>
@@ -802,7 +834,13 @@ const Checkbox: React.FC<{
   >
     {checked && (
       <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M2 6l3 3 5-5"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     )}
   </button>
@@ -816,6 +854,8 @@ type ModalStep = 'closed' | 'shipping' | 'payment';
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast(); // ✅ FIX: Hook phải được gọi bên trong component
+
   const {
     cart,
     removeFromCart,
@@ -864,6 +904,28 @@ const Cart: React.FC = () => {
         : contextShippingFee;
 
   const selectedFinalAmount = selectedSubtotal + selectedShippingFee;
+
+  // ── Kiểm tra có sản phẩm nào vượt quá tồn kho không ─────────────────────
+  const overStockItems = useMemo(
+    () => selectedItems.filter((i) => i.quantity > (i.variant?.stock ?? 0)),
+    [selectedItems]
+  );
+  const hasOverStock = overStockItems.length > 0;
+
+  // ── Quantity handler với kiểm tra stock ──────────────────────────────────
+  // ✅ FIX: Hàm này phải nằm bên trong component để dùng được updateQuantity và showToast
+  const handleUpdateQuantity = (item: any, newQty: number) => {
+    if (newQty > item.quantity) {
+      // Nếu là thao tác TĂNG số lượng
+      if (newQty > item.variant.stock) {
+        showToast(`Rất tiếc, chỉ còn ${item.variant.stock} sản phẩm trong kho`, 'error');
+        return;
+      }
+    }
+    if (newQty >= 1) {
+      updateQuantity(item.id, newQty);
+    }
+  };
 
   // ── Modal state ───────────────────────────────────────────────────────────
   const [modalStep, setModalStep] = useState<ModalStep>('closed');
@@ -938,7 +1000,10 @@ const Cart: React.FC = () => {
       }
     } catch (error: any) {
       console.error('[Payment Error]', error);
-      alert(error.response?.data?.message || error.message || 'Lỗi xử lý đơn hàng');
+      showToast(
+        error.response?.data?.message || error.message || 'Lỗi xử lý đơn hàng',
+        'error'
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -1011,16 +1076,30 @@ const Cart: React.FC = () => {
                 onClick={toggleAll}
                 disabled={totalLoading}
                 className={`flex-shrink-0 w-5 h-5 border-2 transition-all flex items-center justify-center cursor-pointer
-                  ${allChecked || someChecked ? 'bg-black border-black' : 'bg-white border-gray-300 hover:border-black'}`}
+                  ${allChecked || someChecked
+                    ? 'bg-black border-black'
+                    : 'bg-white border-gray-300 hover:border-black'
+                  }`}
                 aria-label="Chọn tất cả"
               >
                 {allChecked ? (
                   <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M2 6l3 3 5-5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 ) : someChecked ? (
                   <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 6h8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    <path
+                      d="M2 6h8"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 ) : null}
               </button>
@@ -1035,10 +1114,12 @@ const Cart: React.FC = () => {
             </div>
 
             {/* Item list */}
+            {/* ✅ FIX: Xóa bộ nút +/- trùng lặp bên ngoài layout, chỉ giữ bộ bên trong details */}
             <div className="space-y-6">
               {cart.map((item) => {
                 const isSelected = selectedIds.has(item.id);
                 const unitPrice = item.variant?.price || 0;
+                const atStockLimit = item.quantity >= item.variant?.stock;
 
                 return (
                   <div
@@ -1058,7 +1139,10 @@ const Cart: React.FC = () => {
                     {/* Image */}
                     <div className="w-full sm:w-40 aspect-square bg-gray-100 flex-shrink-0">
                       <img
-                        src={item.variant?.product?.images?.[0] || 'https://placehold.co/400x400?text=No+Image'}
+                        src={
+                          item.variant?.product?.images?.[0] ||
+                          'https://placehold.co/400x400?text=No+Image'
+                        }
                         alt={item.variant?.product?.name}
                         className="w-full h-full object-cover"
                       />
@@ -1074,22 +1158,29 @@ const Cart: React.FC = () => {
                           <p className="text-[12px] font-bold uppercase text-gray-500">
                             Màu: {item.variant?.color} | Size: {item.variant?.size}
                           </p>
+
+                          {/* ✅ FIX: Chỉ còn 1 bộ nút +/-, dùng handleUpdateQuantity kiểm tra stock */}
                           <div className="flex items-center space-x-4 mt-4">
                             <div className="flex items-center border border-black h-10">
                               <button
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                onClick={() => handleUpdateQuantity(item, item.quantity - 1)}
                                 disabled={item.quantity <= 1 || totalLoading}
-                                className="px-3 hover:bg-gray-100 disabled:opacity-30"
+                                className="px-3 hover:bg-gray-100 disabled:opacity-30 transition-colors"
+                                aria-label="Giảm số lượng"
                               >
-                                -
+                                −
                               </button>
-                              <span className="w-10 text-center font-bold text-xs">
+                              <span className="w-10 text-center font-bold text-xs select-none">
                                 {item.quantity}
                               </span>
                               <button
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                disabled={totalLoading}
-                                className="px-3 hover:bg-gray-100"
+                                onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
+                                disabled={totalLoading || atStockLimit}
+                                className={`px-3 transition-colors ${atStockLimit
+                                    ? 'cursor-not-allowed text-gray-300'
+                                    : 'hover:bg-gray-100'
+                                  }`}
+                                aria-label="Tăng số lượng"
                               >
                                 +
                               </button>
@@ -1097,19 +1188,32 @@ const Cart: React.FC = () => {
                             <button
                               onClick={() => removeFromCart(item.id)}
                               disabled={totalLoading}
-                              className="text-gray-400 hover:text-red-600 transition-colors"
+                              className="text-gray-400 hover:text-red-600 transition-colors disabled:opacity-40"
+                              aria-label="Xóa sản phẩm"
                             >
                               <TrashIcon className="w-5 h-5" />
                             </button>
                           </div>
+
+                          {/* Cảnh báo đạt giới hạn stock */}
+                          {atStockLimit && (
+                            <p className="text-[10px] text-red-500 font-bold uppercase mt-1">
+                              Đã đạt tối đa kho (Còn {item.variant.stock})
+                            </p>
+                          )}
                         </div>
 
-                        <div className="text-right">
+                        <div className="text-right ml-4">
                           <div className="font-bold text-lg">{formatCurrency(unitPrice)}</div>
                           {item.quantity > 1 && (
-                            <div className="text-[11px] text-gray-400 font-medium mt-0.5">
-                              đơn giá / sản phẩm
-                            </div>
+                            <>
+                              <div className="text-[11px] text-gray-400 font-medium mt-0.5">
+                                đơn giá / sản phẩm
+                              </div>
+                              <div className="font-bold text-sm text-gray-700 mt-1">
+                                = {formatCurrency(unitPrice * item.quantity)}
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
@@ -1123,7 +1227,9 @@ const Cart: React.FC = () => {
           {/* ── Order Summary ── */}
           <div className="lg:col-span-4">
             <div className="border-2 border-black p-6 space-y-6 sticky top-24">
-              <h2 className="text-xl font-black italic uppercase tracking-tighter">TÓM TẮT ĐƠN HÀNG</h2>
+              <h2 className="text-xl font-black italic uppercase tracking-tighter">
+                TÓM TẮT ĐƠN HÀNG
+              </h2>
 
               {selectedItems.length > 0 ? (
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -1140,7 +1246,9 @@ const Cart: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-[12px] text-gray-400 italic">Chưa có sản phẩm nào được chọn</p>
+                <p className="text-[12px] text-gray-400 italic">
+                  Chưa có sản phẩm nào được chọn
+                </p>
               )}
 
               <div className="space-y-4 text-[13px] font-medium uppercase border-t border-gray-100 pt-4">
@@ -1158,6 +1266,18 @@ const Cart: React.FC = () => {
                         : formatCurrency(selectedShippingFee)}
                   </span>
                 </div>
+
+                {/* Thông báo miễn phí vận chuyển */}
+                {selectedItems.length > 0 && selectedSubtotal < SHIPPING_THRESHOLD && (
+                  <p className="text-[11px] text-gray-400 font-medium -mt-2">
+                    Mua thêm{' '}
+                    <span className="text-black font-black">
+                      {formatCurrency(SHIPPING_THRESHOLD - selectedSubtotal)}
+                    </span>{' '}
+                    để được miễn phí vận chuyển
+                  </p>
+                )}
+
                 <hr className="border-gray-100" />
                 <div className="flex justify-between text-lg font-black italic">
                   <span>TỔNG CỘNG</span>
@@ -1165,14 +1285,31 @@ const Cart: React.FC = () => {
                 </div>
               </div>
 
+              {/* Cảnh báo vượt kho */}
+              {hasOverStock && (
+                <div className="bg-red-50 border-2 border-red-400 px-4 py-3">
+                  <p className="text-[11px] font-black uppercase tracking-widest text-red-500 mb-1">
+                    ⚠ Vượt quá số lượng tồn kho
+                  </p>
+                  <ul className="space-y-0.5">
+                    {overStockItems.map((i) => (
+                      <li key={i.id} className="text-[11px] text-red-400 font-medium">
+                        {i.variant?.product?.name} — chỉ còn{' '}
+                        <span className="font-black">{i.variant?.stock}</span> sản phẩm
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <button
                 onClick={handleOpenCheckout}
-                disabled={totalLoading || selectedItems.length === 0}
-                className="w-full bg-black text-white py-4 font-bold uppercase text-sm hover:bg-gray-900 transition-all flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
+                disabled={totalLoading || selectedItems.length === 0 || hasOverStock}
+                className="w-full bg-black text-white py-4 font-bold uppercase text-sm hover:bg-gray-900 transition-all flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
               >
                 {totalLoading ? (
                   'ĐANG XỬ LÝ...'
-                ) : selectedItems.length === 0 ? (
+                ) : selectedItems.length === 0 || hasOverStock ? (
                   'CHƯA CHỌN SẢN PHẨM'
                 ) : (
                   <>
