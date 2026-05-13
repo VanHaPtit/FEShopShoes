@@ -54,10 +54,10 @@ const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { to: '/shop', label: 'Giày', search: undefined, isRed: false },
-    { to: '/shop?category=men', label: 'Nam', search: 'category=men', isRed: false },
-    { to: '/shop?category=women', label: 'Nữ', search: 'category=women', isRed: false },
-    { to: '/shop?category=sale', label: 'Giảm Giá', search: 'category=sale', isRed: true },
+    { to: '/shop', label: 'GIÀY', search: undefined, isRed: false },
+    { to: '/shop?category=men', label: 'NAM', search: 'category=men', isRed: false },
+    { to: '/shop?category=women', label: 'NỮ', search: 'category=women', isRed: false },
+    { to: '/shop?category=sale', label: 'GIẢM GIÁ', search: 'category=sale', isRed: false },
   ];
 
   return (
@@ -88,7 +88,6 @@ const Navbar: React.FC = () => {
           ) : (
             <Link to="/signin" className="hover:underline">Đăng ký / Đăng nhập</Link>
           )}
-          <div className="font-bold text-black">VN</div>
         </div>
 
         <div className="max-w-[1400px] mx-auto px-4 lg:px-10 flex items-center justify-between h-14 md:h-20">
@@ -97,7 +96,7 @@ const Navbar: React.FC = () => {
           </button>
 
           <Link to="/" className="flex-shrink-0">
-            <AdidasLogo className="w-12 h-8 md:w-16 md:h-12 text-black" />
+            <span className="text-red-600 font-black text-xl md:text-2xl tracking-tighter uppercase">RETAIL_STORE</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -119,10 +118,10 @@ const Navbar: React.FC = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm kiếm"
-                className="bg-[#eceff1] px-3 py-2 text-sm focus:outline-none w-40 lg:w-48 pr-10 border-b-2 border-transparent focus:border-black transition-all"
+                placeholder="Tìm kiếm sản phẩm..."
+                className="bg-[#f3f4f6] px-4 py-2 text-sm focus:outline-none w-40 lg:w-64 pr-10 rounded-full border border-transparent focus:border-gray-300 transition-all text-gray-700"
               />
-              <button type="submit" className="absolute right-2 top-2"><SearchIcon /></button>
+              <button type="submit" className="absolute right-3 top-2 text-gray-500 hover:text-black transition-colors"><SearchIcon className="w-5 h-5" /></button>
             </form>
             <Link to={user ? "/profile" : "/signin"} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <UserIcon />
@@ -138,7 +137,7 @@ const Navbar: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-white z-[100] p-6 lg:hidden overflow-y-auto flex flex-col">
           <div className="flex justify-between items-center mb-10">
-            <AdidasLogo className="w-12 h-8" />
+            <span className="text-red-600 font-black text-2xl tracking-tighter uppercase">RETAIL_STORE</span>
             <button onClick={() => setIsMobileMenuOpen(false)}>
               <CloseIcon className="w-8 h-8" />
             </button>

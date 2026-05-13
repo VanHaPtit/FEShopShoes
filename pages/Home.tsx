@@ -31,35 +31,37 @@ const Home = () => {
   return (
     <div className="space-y-16 pb-20">
       {/* HERO */}
-      <section className="relative h-[80vh] w-full overflow-hidden">
+      <section className="relative h-[80vh] w-full overflow-hidden bg-[#f0f2f5]">
         <img
-          src="https://picsum.photos/1920/1080?grayscale"
+          src="https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
           alt="Hero Banner"
-          className="w-full h-full object-cover"
+          className="absolute right-0 top-0 w-full md:w-2/3 h-full object-cover object-center md:object-right mix-blend-multiply opacity-95"
         />
-        <div className="absolute inset-0 bg-black/30 flex items-center">
-          <div className="max-w-[1400px] mx-auto px-4 lg:px-10 w-full text-white">
-            <div className="max-w-xl space-y-6">
-              <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-[0.9]">
-                CHINH PHỤC <br /> MỌI GIỚI HẠN
+        <div className="absolute inset-0 bg-gradient-to-r from-[#f0f2f5] via-[#f0f2f5]/90 to-transparent flex items-center">
+          <div className="max-w-[1400px] mx-auto px-4 lg:px-10 w-full">
+            <div className="max-w-xl space-y-4">
+              <div className="inline-block bg-[#c8102e] text-white px-3 py-1 text-xs font-bold tracking-widest uppercase">
+                SẢN PHẨM MỚI
+              </div>
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.9] text-[#1a1a1a]">
+                CHINH PHỤC <br />
+                <span className="text-[#c8102e]">MỌI GIỚI HẠN</span>
               </h1>
-              <p className="text-lg font-bold uppercase tracking-widest italic">
-                BST Mùa Xuân 2024 Đã Sẵn Sàng
+              <p className="text-gray-600 text-base md:text-lg max-w-md pt-2 leading-relaxed font-medium">
+                Trải nghiệm sự kết hợp hoàn hảo giữa công nghệ đệm khí tiên tiến và phong cách đường phố đương đại.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <Link
                   to="/shop"
-                  className="bg-white text-black px-10 py-4 font-bold uppercase text-sm hover:bg-gray-200 transition-all flex items-center group"
+                  className="bg-[#c8102e] text-white px-8 py-3 font-bold uppercase text-sm hover:bg-red-800 transition-all text-center"
                 >
-                  Mua Giày
-                  <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                  MUA NGAY
                 </Link>
                 <Link
                   to="/shop"
-                  className="border-2 border-white text-white px-10 py-4 font-bold uppercase text-sm hover:bg-white hover:text-black transition-all flex items-center group"
+                  className="bg-white border-2 border-black text-black px-8 py-3 font-bold uppercase text-sm hover:bg-black hover:text-white transition-all text-center"
                 >
-                  Xem Quần Áo
-                  <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                  KHÁM PHÁ
                 </Link>
               </div>
             </div>

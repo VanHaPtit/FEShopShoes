@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
-import GeminiAssistant from './components/GeminiAssistant';
+import CustomerChatBox from './components/CustomerChatBox';
 import ProtectedRoute from './components/ProtectedRoute';
 import CreateReview from './pages/CreateReview';
 
@@ -19,6 +19,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Profile = lazy(() => import('./pages/Profile'));
 const PaymentCallback = lazy(() => import('./pages/PaymentCallback'));
 const OrderDetail = lazy(() => import('./pages/OrderDetail'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 // Admin
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
@@ -43,6 +44,7 @@ const App: React.FC = () => {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/signin" element={<Login />} />
                 <Route path="/signup" element={<Login />} />
+                <Route path="/verify" element={<VerifyEmail />} />
                 <Route path="/reviews/create/:productId" element={<CreateReview />} />
                 <Route path="/login" element={<Navigate to="/signin" replace />} />
                 <Route path="/profile" element={<Profile />} />
@@ -52,7 +54,7 @@ const App: React.FC = () => {
                 <Route path="/orders/:id" element={<OrderDetail />} />
               </Routes>
             </main>
-            <GeminiAssistant />
+            <CustomerChatBox />
             <Footer />
           </div>
         } />

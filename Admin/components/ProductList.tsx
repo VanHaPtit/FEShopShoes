@@ -245,8 +245,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
 
     // ─────────────────────────────────────────────────────────────────────
     return (
-        <div className="space-y-6 relative">
-
+        <div className="space-y-6 relative font-sans">
             {/* ── Toast stack ─────────────────────────────────────────── */}
             <div className="fixed bottom-6 right-6 z-[300] flex flex-col gap-2 pointer-events-none">
                 {toasts.map(t => (
@@ -263,151 +262,171 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                 ))}
             </div>
 
-            {/* ── Header ──────────────────────────────────────────────── */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Products</h2>
-                    {/* <p className="text-slate-500 text-sm">Manage your product catalog and inventory levels</p> */}
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    <input ref={importRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} />
-                    <button onClick={() => importRef.current?.click()}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-                        <Upload className="w-4 h-4 text-violet-500" /> Import Excel
-                    </button>
-                    <button onClick={handleExport}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-                        <Download className="w-4 h-4 text-emerald-500" /> Export Excel
-                    </button>
-                    {/* Combo button */}
-                    {/* <button onClick={openComboPanel}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-lg shadow-amber-200">
-                        <Gift className="w-4 h-4" /> Quản lý Combo
-                    </button> */}
-                    <button onClick={onAdd}
-                        className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center gap-2 text-sm">
-                        <Plus className="w-4 h-4" /> New Product
-                    </button>
-                </div>
+            {/* ── Breadcrumb & Title ──────────────────────────────────── */}
+            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-6">
+                <span>CATALOGUE</span>
+                <span className="mx-2">›</span>
+                <span className="text-[#c8102e]">PRODUCTS</span>
             </div>
 
             {/* ── Stats ───────────────────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard icon={<PackageCheck className="w-6 h-6" />} color="blue" label="Total Items" value={products.length} />
-                <StatCard icon={<TrendingUp className="w-6 h-6" />} color="emerald" label="Top Sellers" value={products.filter(p => p.totalSold > 100).length} />
-                <StatCard icon={<Trash2 className="w-6 h-6" />} color="amber" label="Out of Stock" value={products.filter(isOos).length} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <StatCard icon={<PackageCheck className="w-6 h-6" />} color="red" label="TOTAL ITEMS" value={products.length} />
+                <StatCard icon={<TrendingUp className="w-6 h-6" />} color="blue" label="TOP SELLERS" value={products.filter(p => p.totalSold > 100).length} />
+                <StatCard icon={<AlertCircle className="w-6 h-6" />} color="gray" label="OUT OF STOCK" value={products.filter(isOos).length} />
             </div>
 
-            {/* ── Search & Filter ──────────────────────────────────────── */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 items-center">
-                <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <input type="text" placeholder="Search products by name..." value={searchTerm}
-                        onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+            {/* ── Controls ────────────────────────────────────────────── */}
+            <div className="flex flex-col xl:flex-row gap-4 items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row items-center gap-4 flex-1 w-full">
+                    <div className="bg-white flex items-center px-4 py-2.5 w-full sm:w-80 shadow-sm border border-gray-100">
+                        <input 
+                            type="text" 
+                            placeholder="Search products by name..." 
+                            value={searchTerm}
+                            onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
+                            className="bg-transparent w-full text-[13px] text-gray-700 outline-none font-medium" 
+                        />
+                    </div>
+                    <div className="bg-white px-4 py-2.5 w-full sm:w-48 border-r-8 border-transparent shadow-sm border border-gray-100">
+                        <select 
+                            value={filterCategory}
+                            onChange={e => { setFilterCategory(e.target.value); setPage(1); }}
+                            className="bg-transparent w-full text-[13px] font-medium text-gray-700 outline-none cursor-pointer"
+                        >
+                            <option value="All">All Categories</option>
+                            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                        </select>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 w-full md:w-auto">
-                    <Filter className="w-4 h-4 text-slate-500" />
-                    <select value={filterCategory}
-                        onChange={e => { setFilterCategory(e.target.value); setPage(1); }}
-                        className="bg-transparent text-sm font-medium text-slate-600 outline-none">
-                        <option value="All">All Categories</option>
-                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                    </select>
+
+                <div className="flex items-center gap-3 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0">
+                    <input ref={importRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} />
+                    <button 
+                        onClick={() => importRef.current?.click()}
+                        className="border border-black px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-black bg-white hover:bg-black hover:text-white transition-colors whitespace-nowrap"
+                    >
+                        IMPORT EXCEL
+                    </button>
+                    <button 
+                        onClick={handleExport}
+                        className="border border-black px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-black bg-white hover:bg-black hover:text-white transition-colors whitespace-nowrap"
+                    >
+                        EXPORT EXCEL
+                    </button>
+                    <button 
+                        onClick={onAdd}
+                        className="bg-[#c8102e] text-white px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest hover:bg-red-800 transition-colors whitespace-nowrap"
+                    >
+                        + NEW PRODUCT
+                    </button>
                 </div>
-                {(searchTerm || filterCategory !== 'All') && (
-                    <p className="text-xs text-slate-400 whitespace-nowrap">{filtered.length} / {products.length} sản phẩm</p>
-                )}
             </div>
 
             {/* ── Table ───────────────────────────────────────────────── */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50/80 border-b border-slate-100">
-                        <tr>
-                            {['Product', 'Status', 'Inventory', 'Price', 'Sales', ''].map((h, i) => (
-                                <th key={i} className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider ${h === '' ? 'text-right' : ''}`}>{h}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {paginated.length === 0 ? (
-                            <tr><td colSpan={6} className="px-6 py-16 text-center text-slate-400">Không tìm thấy sản phẩm nào.</td></tr>
-                        ) : paginated.map(product => {
-                            const stock = totalStock(product);
-                            const oos = isOos(product);
-                            return (
-                                <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-6 py-5">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200">
-                                                {product.images?.[0]
-                                                    ? <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                                                    : <PackageCheck className="w-full h-full p-2.5 text-slate-300" />}
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-slate-900 leading-tight">{product.name}</p>
-                                                <p className="text-xs text-slate-400 mt-0.5">{product.category?.name ?? 'Uncategorized'} · {product.brand?.name ?? 'No Brand'}</p>
-                                                {product.slug && <p className="text-[10px] text-slate-300 font-mono mt-0.5">/{product.slug}</p>}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-5">
-                                        {product.active
-                                            ? <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Active</span>
-                                            : <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">Hidden</span>}
-                                    </td>
-                                    <td className="px-6 py-5">
-                                        {(product.variants ?? []).length === 0
-                                            ? <span className="text-xs text-slate-400 italic">No variants</span>
-                                            : <div className="space-y-1.5">
-                                                <div className="flex items-center justify-between text-xs font-medium">
-                                                    <span className="text-slate-500">Stock</span>
-                                                    <span className={oos || stock < 10 ? 'text-red-600 font-bold' : 'text-slate-900'}>{stock} units</span>
+            <div className="bg-white overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-gray-50/50 border-b border-gray-100">
+                                {['PRODUCT', 'STATUS', 'INVENTORY', 'PRICE', 'SALES', 'ACTIONS'].map((h, i) => (
+                                    <th key={i} className={`px-6 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest ${h === 'ACTIONS' ? 'text-right' : ''}`}>
+                                        {h}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {paginated.length === 0 ? (
+                                <tr><td colSpan={6} className="py-16 text-center text-gray-400 text-sm">Không tìm thấy sản phẩm nào.</td></tr>
+                            ) : paginated.map(product => {
+                                const stock = totalStock(product);
+                                return (
+                                    <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
+                                        <td className="px-6 py-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-[60px] h-[60px] bg-gray-100 flex-shrink-0">
+                                                    {product.images?.[0]
+                                                        ? <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover mix-blend-multiply" />
+                                                        : <PackageCheck className="w-full h-full p-4 text-gray-300" />}
                                                 </div>
-                                                <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className={`h-full rounded-full ${oos || stock < 10 ? 'bg-red-500' : 'bg-blue-500'}`}
-                                                        style={{ width: `${Math.min(100, stock)}%` }} />
+                                                <div>
+                                                    <p className="font-bold text-[14px] text-gray-900 leading-tight mb-1">{product.name}</p>
+                                                    <p className="text-[11px] text-gray-400 font-bold tracking-widest">
+                                                        SKU: {product.slug?.toUpperCase() || `BIT-PRD-${product.id}`}
+                                                    </p>
                                                 </div>
-                                            </div>}
-                                    </td>
-                                    <td className="px-6 py-5">
-                                        <span className="font-bold text-slate-900">${(product.salePrice ?? product.basePrice).toLocaleString()}</span>
-                                        {product.salePrice != null && product.salePrice < product.basePrice && (
-                                            <span className="block text-xs text-slate-400 line-through">${product.basePrice.toLocaleString()}</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-5 text-sm text-slate-600 font-medium">{product.totalSold.toLocaleString()} sold</td>
-                                    <td className="px-6 py-5 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => onEdit(product)} className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit3 className="w-5 h-5" /></button>
-                                            <button onClick={() => handleDelete(product.id!)} disabled={deletingId === product.id}
-                                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-40"><Trash2 className="w-5 h-5" /></button>
-                                            <button className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"><ExternalLink className="w-5 h-5" /></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-6">
+                                            {product.active
+                                                ? <span className="inline-block px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest bg-[#e8f5e9] text-[#2e7d32]">
+                                                    ACTIVE
+                                                </span>
+                                                : <span className="inline-block px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest bg-gray-100 text-gray-500">
+                                                    HIDDEN
+                                                </span>}
+                                        </td>
+                                        <td className="px-6 py-6">
+                                            <span className="text-[13px] text-gray-500 font-medium">
+                                                {(product.variants ?? []).length === 0 ? 'No variants' : `${stock} in stock`}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-6">
+                                            <div className="flex flex-col">
+                                                {product.salePrice != null && product.salePrice < product.basePrice && (
+                                                    <span className="text-[11px] text-gray-400 line-through font-bold">
+                                                        {product.basePrice.toLocaleString()}đ
+                                                    </span>
+                                                )}
+                                                <span className="font-bold text-[14px] text-[#c8102e]">
+                                                    {(product.salePrice ?? product.basePrice).toLocaleString()}đ
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-6 text-[13px] text-gray-800 font-bold">
+                                            {product.totalSold.toLocaleString()} sold
+                                        </td>
+                                        <td className="px-6 py-6 text-right">
+                                            <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => onEdit(product)} className="text-gray-400 hover:text-black transition-colors"><Edit3 size={18} /></button>
+                                                <button onClick={() => handleDelete(product.id!)} disabled={deletingId === product.id}
+                                                    className="text-gray-400 hover:text-[#c8102e] transition-colors"><Trash2 size={18} /></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
 
-                {/* Pagination */}
-                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-                    <p className="text-sm text-slate-500">
-                        Showing <span className="font-medium text-slate-900">{filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}</span>–
-                        <span className="font-medium text-slate-900">{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}</span> of{' '}
-                        <span className="font-medium text-slate-900">{filtered.length}</span> results
+                {/* ── Pagination ──────────────────────────────────────── */}
+                <div className="px-6 py-6 border-t border-gray-100 flex items-center justify-between">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        SHOWING {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} OF {filtered.length} ITEMS
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                         <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
-                            className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <ChevronLeft className="w-5 h-5" /></button>
-                        <span className="text-sm font-medium text-slate-700 px-2">{safePage} / {totalPages}</span>
+                            className="w-8 h-8 border border-gray-200 flex items-center justify-center text-gray-400 hover:border-black hover:text-black disabled:opacity-40 transition-colors">
+                            <ChevronLeft size={14} />
+                        </button>
+                        
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                            <button 
+                                key={p} 
+                                onClick={() => setPage(p)}
+                                className={`w-8 h-8 flex items-center justify-center text-[13px] font-bold transition-colors
+                                    ${safePage === p ? 'bg-[#c8102e] text-white border border-[#c8102e]' : 'text-gray-500 hover:bg-gray-50 border border-transparent'}`}
+                            >
+                                {p}
+                            </button>
+                        ))}
+
                         <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-                            className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <ChevronRight className="w-5 h-5" /></button>
+                            className="w-8 h-8 border border-gray-200 flex items-center justify-center text-gray-400 hover:border-black hover:text-black disabled:opacity-40 transition-colors">
+                            <ChevronRight size={14} />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -537,7 +556,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                                         </label>
                                         <div className="relative">
                                             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                            <input type="number" min={0} className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400/30 outline-none"
+                                            <input type="number" className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400/30 outline-none"
                                                 placeholder="0" value={comboForm.comboPrice || ''}
                                                 onChange={e => setComboForm(p => ({ ...p, comboPrice: Number(e.target.value) }))} />
                                         </div>
@@ -655,19 +674,18 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
 
 // ─── StatCard ─────────────────────────────────────────────────────────────────
 const colorMap: Record<string, string> = {
+    red: 'bg-[#fff5f5] text-[#c8102e]',
     blue: 'bg-blue-50 text-blue-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
+    gray: 'bg-gray-100 text-gray-500',
 };
 const StatCard: React.FC<{ icon: React.ReactNode; color: string; label: string; value: number }> = ({ icon, color, label, value }) => (
-    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${colorMap[color] ?? ''}`}>{icon}</div>
+    <div className="bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center justify-between">
         <div>
-            <p className="text-sm text-slate-500 font-medium">{label}</p>
-            <p className="text-2xl font-bold text-slate-900">{value}</p>
+            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-1">{label}</p>
+            <p className="text-3xl font-black text-gray-900">{value}</p>
         </div>
+        <div className={`p-4 rounded-xl ${colorMap[color] ?? ''}`}>{icon}</div>
     </div>
 );
 
 export default ProductList;
-

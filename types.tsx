@@ -69,4 +69,6 @@ export interface User {
     email: string;
     fullName: string;
     roles: string[];
+    token?: string;
+    accessToken?: string;
 }

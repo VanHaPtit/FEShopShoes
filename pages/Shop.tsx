@@ -24,16 +24,32 @@ const Shop: React.FC = () => {
       setLoading(true);
       try {
         let data: Product[];
-        if (searchQuery) {
-          data = await ProductService.search(searchQuery);
-        } else if (categoryFilter === 'sale') {
+        if (categoryFilter === 'sale') {
           data = await ProductService.getFlashSales();
         } else if (categoryFilter) {
           data = await ProductService.getByCategory(categoryFilter);
         } else {
           data = await ProductService.getAll();
         }
-        setProducts(data.filter(p => p.active !== false));
+        
+        let validProducts = data.filter(p => p.active !== false);
+
+        // Client-side search for better matching (word-by-word and accent-insensitive)
+        if (searchQuery) {
+          const removeAccents = (str: string) => {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          };
+          const normalizedQuery = removeAccents(searchQuery.toLowerCase().trim());
+          const searchTerms = normalizedQuery.split(/\s+/);
+          
+          validProducts = validProducts.filter(product => {
+             const nameStr = removeAccents((product.name || '').toLowerCase());
+             // Check if all search terms are included in the product name
+             return searchTerms.every(term => nameStr.includes(term));
+          });
+        }
+
+        setProducts(validProducts);
       } catch (err) {
         console.error("Lỗi gọi dữ liệu từ Server:", err);
         setProducts([]);

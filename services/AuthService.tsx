@@ -19,6 +19,11 @@ export const AuthService = {
     // Đăng xuất: Gọi API xóa session/cookie ở BE nếu có
     logout: () => {
         return axiosClient.post('/auth/signout');
+    },
+
+    // Xác nhận email
+    verifyEmail: (code: string) => {
+        return axiosClient.get(`/auth/verify?code=${code}`);
     }
 };
 

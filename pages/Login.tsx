@@ -472,6 +472,8 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -483,6 +485,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
 
     try {
       if (!isLogin) {
@@ -493,10 +496,11 @@ const Login: React.FC = () => {
             password, 
             fullName, 
             phone, 
-            role: ["user"] 
+            dateOfBirth,
+            role: ["USER"] 
         };
         await AuthService.register(signupData);
-        showToast("Đăng ký thành công! Hãy đăng nhập để tiếp tục.", "success");
+        showToast("Vui lòng kiểm tra email của bạn và nhấn vào liên kết xác nhận để hoàn tất đăng ký", "success");
         setIsLogin(true); // Chuyển về form đăng nhập
       } else {
         // LUỒNG ĐĂNG NHẬP: Sử dụng Email làm username để xác thực
@@ -511,8 +515,14 @@ const Login: React.FC = () => {
         navigate(isAdmin ? '/admin' : '/shop');
       }
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Thông tin không chính xác, vui lòng thử lại.";
-      showToast(errorMsg, "error");
+      if (err.response?.status === 400 && typeof err.response.data === 'object' && !err.response.data.message) {
+        // Validation errors returned from BE (GlobalExceptionHandler)
+        setErrors(err.response.data);
+        showToast("Vui lòng kiểm tra lại thông tin nhập", "error");
+      } else {
+        const errorMsg = err.response?.data?.message || err.response?.data || "Thông tin không chính xác, vui lòng thử lại.";
+        showToast(typeof errorMsg === 'string' ? errorMsg : "Có lỗi xảy ra", "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -533,13 +543,13 @@ const Login: React.FC = () => {
           <div>
             <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Địa chỉ Email</label>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-black outline-none transition-all font-bold"
+              className={`w-full px-4 py-3 bg-gray-50 border ${errors.email || errors.username ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
               placeholder="name@example.com"
             />
+            {(errors.email || errors.username) && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.email || errors.username}</p>}
           </div>
 
           <div>
@@ -549,8 +559,7 @@ const Login: React.FC = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-black outline-none transition-all font-bold"
+                className={`w-full px-4 py-3 bg-gray-50 border ${errors.password ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
                 placeholder="••••••••"
               />
               <button
@@ -561,6 +570,7 @@ const Login: React.FC = () => {
                 {showPassword ? "Ẩn" : "Hiện"}
               </button>
             </div>
+            {errors.password && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.password}</p>}
           </div>
 
           {!isLogin && (
@@ -571,9 +581,9 @@ const Login: React.FC = () => {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-black outline-none transition-all font-bold"
+                  className={`w-full px-4 py-3 bg-gray-50 border ${errors.fullName ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
                 />
+                {errors.fullName && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.fullName}</p>}
               </div>
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Số điện thoại</label>
@@ -581,9 +591,19 @@ const Login: React.FC = () => {
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-black outline-none transition-all font-bold"
+                  className={`w-full px-4 py-3 bg-gray-50 border ${errors.phone ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
                 />
+                {errors.phone && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.phone}</p>}
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Ngày sinh</label>
+                <input
+                  type="date"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  className={`w-full px-4 py-3 bg-gray-50 border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
+                />
+                {errors.dateOfBirth && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.dateOfBirth}</p>}
               </div>
             </div>
           )}
