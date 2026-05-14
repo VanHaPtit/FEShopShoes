@@ -68,5 +68,13 @@ export interface User {
     id: number;
     email: string;
     fullName: string;
+    phone?: string;
     roles: string[];
+    token?: string;
+    accessToken?: string;
+    address?: {
+        province?: string;
+        ward?: string;
+        specificAddress?: string;
+    };
 }

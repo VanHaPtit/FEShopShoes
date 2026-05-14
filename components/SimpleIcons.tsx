@@ -17,7 +17,7 @@ export const CartIcon: React.FC<{ count?: number, className?: string }> = ({ cou
   <div className="relative">
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
     {count > 0 && (
-      <span className="absolute -top-1 -right-1 bg-[#2b7b62] text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
+      <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
         {count}
       </span>
     )}

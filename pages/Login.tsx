@@ -493,10 +493,10 @@ const Login: React.FC = () => {
             password, 
             fullName, 
             phone, 
-            role: ["user"] 
+            role: ["USER"] 
         };
         await AuthService.register(signupData);
-        showToast("Đăng ký thành công! Hãy đăng nhập để tiếp tục.", "success");
+        showToast("Vui lòng kiểm tra email của bạn và nhấn vào liên kết xác nhận để hoàn tất đăng ký", "success");
         setIsLogin(true); // Chuyển về form đăng nhập
       } else {
         // LUỒNG ĐĂNG NHẬP: Sử dụng Email làm username để xác thực
