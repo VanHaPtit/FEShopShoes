@@ -205,7 +205,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                                 </label>
                                 <input
                                     type="text"
-                                    required
                                     value={name}
                                     onChange={e => setName(e.target.value)}
                                     className="w-full px-4 py-3 border border-gray-200 text-[13px] text-gray-900 font-medium placeholder:text-gray-400 outline-none focus:border-black transition-all"
@@ -247,7 +246,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                                         className="hidden"
                                         accept="image/*"
                                         onChange={handleFileChange}
-                                        required={!editingCat}
                                     />
                                 </div>
                             </div>

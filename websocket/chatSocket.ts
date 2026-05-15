@@ -10,10 +10,11 @@ class ChatSocketService {
   private isConnecting = false;
 
   public connect(token: string, onConnect: () => void, onError: (err: any) => void) {
+    // Ngăn chặn việc kết nối chồng chéo nếu đang trong quá trình kết nối hoặc đã kết nối xong
     if (this.connected || this.isConnecting) return;
     this.isConnecting = true;
 
-    // Thay đổi URL theo BE thực tế của bạn
+    // URL Backend - Có thể điều chỉnh qua biến môi trường (env)
     const socketUrl = `http://${window.location.hostname}:8080/ws`;
 
     this.client = new Client({
@@ -36,6 +37,7 @@ class ChatSocketService {
     };
 
     this.client.onStompError = (frame) => {
+      this.connected = false;
       this.isConnecting = false;
       console.error('Broker reported error: ' + frame.headers['message']);
       console.error('Additional details: ' + frame.body);
@@ -43,9 +45,15 @@ class ChatSocketService {
     };
 
     this.client.onWebSocketError = (event) => {
+      this.connected = false;
       this.isConnecting = false;
       console.error('WebSocket Error', event);
       onError(event);
+    };
+
+    this.client.onDisconnect = () => {
+      this.connected = false;
+      this.isConnecting = false;
     };
 
     this.client.activate();
@@ -59,7 +67,7 @@ class ChatSocketService {
     }
   }
 
-  // KHÁCH HÀNG: Đăng ký nhận tin nhắn của mình
+  // KHÁCH HÀNG: Đăng ký nhận tin nhắn của riêng mình
   public subscribeUser(userId: number, callback: MessageCallback) {
     if (!this.client || !this.connected) return;
     this.client.subscribe(`/topic/user/${userId}`, (message) => {
@@ -69,7 +77,7 @@ class ChatSocketService {
     });
   }
 
-  // ADMIN: Đăng ký nhận toàn bộ tin nhắn
+  // ADMIN: Đăng ký nhận toàn bộ tin nhắn từ các luồng hỗ trợ
   public subscribeAdmin(callback: MessageCallback) {
     if (!this.client || !this.connected) return;
     this.client.subscribe(`/topic/admin/chat`, (message) => {
@@ -79,7 +87,7 @@ class ChatSocketService {
     });
   }
 
-  // KHÁCH HÀNG: Gửi câu hỏi
+  // KHÁCH HÀNG: Gửi tin nhắn lên hệ thống
   public sendMessage(content: string) {
     if (!this.client || !this.connected) return;
     this.client.publish({
@@ -88,7 +96,7 @@ class ChatSocketService {
     });
   }
 
-  // ADMIN: Trả lời khách
+  // ADMIN: Phản hồi tin nhắn cho một user cụ thể
   public replyToUser(targetUserId: number, content: string) {
     if (!this.client || !this.connected) return;
     this.client.publish({
@@ -96,8 +104,8 @@ class ChatSocketService {
       body: JSON.stringify({ targetUserId, content })
     });
   }
-  
-  public isConnected() {
+
+  public getStatus() {
     return this.connected;
   }
 }

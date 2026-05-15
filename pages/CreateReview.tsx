@@ -197,7 +197,6 @@ const CreateReview: React.FC = () => {
                         <textarea
                             className="w-full bg-transparent outline-none text-[14px] min-h-[140px] resize-none text-gray-700"
                             placeholder="Bạn cảm thấy thế nào về kích cỡ, chất liệu và kiểu dáng?"
-                            maxLength={300}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                         />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useChat, connectChat, replyToUser } from '../hooks/useChat';
 import { useAuth } from '../context/AuthContext';
 import MessageBubble from './MessageBubble';
@@ -6,12 +6,12 @@ import ToggleAIButton from './ToggleAIButton';
 
 const AdminChatPanel: React.FC = () => {
   const { user } = useAuth();
-  const { messages, isConnected, activeSessions } = useChat();
+  const { messages, isConnected } = useChat();
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Kết nối WebSockets khi vào trang Admin
+  // 1. Kết nối WebSockets khi vào trang Admin
   useEffect(() => {
     if (user && !isConnected) {
       const token = user.token || user.accessToken;
@@ -21,11 +21,27 @@ const AdminChatPanel: React.FC = () => {
     }
   }, [user, isConnected]);
 
-  // Tự động cuộn xuống cuối khi có tin nhắn mới
+  // 2. Tự động cuộn xuống cuối khi có tin nhắn mới hoặc đổi User
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
+  }, [messages, selectedUserId]);
+
+  // 3. Lọc danh sách User duy nhất từ lịch sử tin nhắn (Dùng useMemo để tối ưu)
+  const uniqueUsers = useMemo(() => {
+    const users = messages
+      .filter(m => m.senderRole === 'USER' || m.userId)
+      .map(m => m.senderId || m.userId);
+    return Array.from(new Set(users)).filter(Boolean) as number[];
+  }, [messages]);
+
+  // 4. Lọc tin nhắn của user đang được chọn
+  const currentMessages = useMemo(() => {
+    if (!selectedUserId) return [];
+    return messages.filter(
+      msg => msg.userId === selectedUserId || msg.senderId === selectedUserId || (msg.receiverId === selectedUserId && msg.senderRole === 'ADMIN')
+    );
   }, [messages, selectedUserId]);
 
   const handleReply = () => {
@@ -34,17 +50,9 @@ const AdminChatPanel: React.FC = () => {
     setReplyText('');
   };
 
-  // Lọc tin nhắn của user đang được chọn
-  const currentMessages = messages.filter(
-    msg => msg.userId === selectedUserId
-  );
-
-  // Nhóm sessions từ lịch sử tin nhắn
-  const uniqueUsers = Array.from(new Set(messages.map(m => m.userId))).filter(Boolean) as number[];
-
   return (
     <div className="flex h-[calc(100vh-100px)] bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-      
+
       {/* Sidebar: Danh sách User */}
       <div className="w-1/3 border-r border-gray-200 flex flex-col bg-gray-50">
         <div className="p-4 border-b border-gray-200 bg-white">
@@ -53,18 +61,17 @@ const AdminChatPanel: React.FC = () => {
             <ToggleAIButton />
           </div>
         </div>
-        
+
         <div className="flex-grow overflow-y-auto">
           {uniqueUsers.length === 0 ? (
-             <div className="p-8 text-center text-gray-400 text-sm">Chưa có cuộc hội thoại nào.</div>
+            <div className="p-8 text-center text-gray-400 text-sm">Chưa có cuộc hội thoại nào.</div>
           ) : (
             uniqueUsers.map(uid => (
-              <div 
+              <div
                 key={uid}
                 onClick={() => setSelectedUserId(uid)}
-                className={`p-4 border-b border-gray-100 cursor-pointer transition-colors ${
-                  selectedUserId === uid ? 'bg-indigo-50 border-l-4 border-l-indigo-600' : 'hover:bg-gray-100'
-                }`}
+                className={`p-4 border-b border-gray-100 cursor-pointer transition-colors ${selectedUserId === uid ? 'bg-indigo-50 border-l-4 border-l-indigo-600' : 'hover:bg-gray-100'
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -76,7 +83,6 @@ const AdminChatPanel: React.FC = () => {
                       <p className="text-xs text-gray-500 truncate w-32">Nhấn để xem tin nhắn...</p>
                     </div>
                   </div>
-                  {/* Có thể thêm badge unread ở đây */}
                 </div>
               </div>
             ))
@@ -105,10 +111,10 @@ const AdminChatPanel: React.FC = () => {
 
             <div ref={scrollRef} className="flex-grow overflow-y-auto p-6 space-y-4 bg-gray-50">
               {currentMessages.map((msg, idx) => (
-                <MessageBubble 
-                  key={msg.id || idx} 
-                  message={msg} 
-                  isOwnMessage={msg.sender === 'ADMIN'} 
+                <MessageBubble
+                  key={msg.id || idx}
+                  message={msg}
+                  isOwnMessage={msg.senderRole === 'ADMIN' || msg.sender === 'ADMIN'}
                 />
               ))}
             </div>

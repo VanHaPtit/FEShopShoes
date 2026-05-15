@@ -453,7 +453,6 @@
 
 
 
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthService } from '../services/AuthService';
@@ -463,45 +462,51 @@ import { useToast } from '../context/ToastContext';
 const Login: React.FC = () => {
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(location.pathname === '/signin');
-  
+
   useEffect(() => {
     setIsLogin(location.pathname === '/signin');
   }, [location.pathname]);
+
   // States cho các trường dữ liệu
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth(); //
+  const { login } = useAuth();
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
 
     try {
       if (!isLogin) {
         // LUỒNG ĐĂNG KÝ: Gửi toàn bộ thông tin cho BE
-        const signupData = { 
-            username: email, 
-            email, 
-            password, 
-            fullName, 
-            phone, 
-            role: ["USER"] 
+        const signupData = {
+          username: email,
+          email,
+          password,
+          fullName,
+          phone,
+          dateOfBirth,
+          role: ["USER"]
         };
         await AuthService.register(signupData);
         showToast("Vui lòng kiểm tra email của bạn và nhấn vào liên kết xác nhận để hoàn tất đăng ký", "success");
         setIsLogin(true); // Chuyển về form đăng nhập
+        navigate('/signin');
       } else {
         // LUỒNG ĐĂNG NHẬP: Sử dụng Email làm username để xác thực
         const response = await AuthService.login({ username: email, password });
-        
+
         // Lưu thông tin vào Context & LocalStorage
         login(response.data);
         showToast("Chào mừng bạn quay trở lại!", "success");
@@ -511,8 +516,14 @@ const Login: React.FC = () => {
         navigate(isAdmin ? '/admin' : '/shop');
       }
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Thông tin không chính xác, vui lòng thử lại.";
-      showToast(errorMsg, "error");
+      if (err.response?.status === 400 && typeof err.response.data === 'object' && !err.response.data.message) {
+        // Validation errors returned from BE (GlobalExceptionHandler)
+        setErrors(err.response.data);
+        showToast("Vui lòng kiểm tra lại thông tin nhập", "error");
+      } else {
+        const errorMsg = err.response?.data?.message || err.response?.data || "Thông tin không chính xác, vui lòng thử lại.";
+        showToast(typeof errorMsg === 'string' ? errorMsg : "Có lỗi xảy ra", "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -529,19 +540,20 @@ const Login: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email: Luôn cần thiết */}
+          {/* Email */}
           <div>
             <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Địa chỉ Email</label>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-black outline-none transition-all font-bold"
+              className={`w-full px-4 py-3 bg-gray-50 border ${errors.email || errors.username ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
               placeholder="name@example.com"
             />
+            {(errors.email || errors.username) && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.email || errors.username}</p>}
           </div>
 
+          {/* Mật khẩu */}
           <div>
             <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Mật khẩu</label>
             <div className="relative">
@@ -549,20 +561,21 @@ const Login: React.FC = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-black outline-none transition-all font-bold"
+                className={`w-full px-4 py-3 bg-gray-50 border ${errors.password ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
                 placeholder="••••••••"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-black"
+                className="absolute right-3 top-3 text-gray-400 hover:text-black font-bold text-[10px] uppercase"
               >
                 {showPassword ? "Ẩn" : "Hiện"}
               </button>
             </div>
+            {errors.password && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.password}</p>}
           </div>
 
+          {/* Các trường bổ sung khi Đăng ký */}
           {!isLogin && (
             <div className="space-y-4 animate-in fade-in duration-300">
               <div>
@@ -571,9 +584,9 @@ const Login: React.FC = () => {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-black outline-none transition-all font-bold"
+                  className={`w-full px-4 py-3 bg-gray-50 border ${errors.fullName ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
                 />
+                {errors.fullName && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.fullName}</p>}
               </div>
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Số điện thoại</label>
@@ -581,9 +594,19 @@ const Login: React.FC = () => {
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-black outline-none transition-all font-bold"
+                  className={`w-full px-4 py-3 bg-gray-50 border ${errors.phone ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
                 />
+                {errors.phone && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.phone}</p>}
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1 ml-1">Ngày sinh</label>
+                <input
+                  type="date"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  className={`w-full px-4 py-3 bg-gray-50 border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-200'} focus:border-black outline-none transition-all font-bold`}
+                />
+                {errors.dateOfBirth && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.dateOfBirth}</p>}
               </div>
             </div>
           )}
@@ -594,7 +617,7 @@ const Login: React.FC = () => {
             className="w-full py-4 bg-black text-white font-bold uppercase text-sm tracking-widest hover:opacity-80 transition-all active:scale-[0.98] flex items-center justify-center space-x-2 mt-6"
           >
             {isLoading ? (
-               <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
             ) : isLogin ? "Đăng Nhập" : "Đăng Ký"}
           </button>
         </form>

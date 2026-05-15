@@ -303,7 +303,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, brands, 
                             <div>
                                 <Label>Base Price ($) <Required /></Label>
                                 <input
-                                    type="number" min={0}
+                                    type="number"
                                     value={form.basePrice}
                                     onChange={e => update({ basePrice: Number(e.target.value) })}
                                     className={input}
@@ -312,7 +312,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, brands, 
                             <div>
                                 <Label>Sale Price ($) <span className="text-slate-400 font-normal text-xs ml-1">optional</span></Label>
                                 <input
-                                    type="number" min={0}
+                                    type="number"
                                     value={form.salePrice ?? ''}
                                     onChange={e => update({ salePrice: e.target.value === '' ? null : Number(e.target.value) })}
                                     className={input}
@@ -364,7 +364,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, brands, 
                                         ) : variants.map((v, idx) => (
                                             <tr key={idx} className="hover:bg-slate-50/50">
                                                 <td className="px-4 py-2">
-                                                    <input type="number" value={v.size} min={30} max={50}
+                                                    <input type="number" value={v.size}
                                                         onChange={e => updateVariant(idx, { size: Number(e.target.value) })}
                                                         className={varInput + ' w-20'} />
                                                 </td>
@@ -374,12 +374,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, brands, 
                                                         className={varInput + ' w-32'} />
                                                 </td>
                                                 <td className="px-4 py-2">
-                                                    <input type="number" value={v.stock} min={0}
+                                                    <input type="number" value={v.stock}
                                                         onChange={e => updateVariant(idx, { stock: Number(e.target.value) })}
                                                         className={varInput + ' w-24'} />
                                                 </td>
                                                 <td className="px-4 py-2">
-                                                    <input type="number" value={v.price} min={0}
+                                                    <input type="number" value={v.price}
                                                         onChange={e => updateVariant(idx, { price: Number(e.target.value) })}
                                                         className={varInput + ' w-32'} />
                                                 </td>

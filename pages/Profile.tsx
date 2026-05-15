@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
 import {
-    User, MapPin, Bell, LogOut, Camera, Loader2
+    User, Heart, MapPin, Bell, LogOut, Camera, Loader2
 } from 'lucide-react';
 import vnUnitsData from '../../full_json_generated_data_vn_units.json';
 
@@ -11,7 +11,7 @@ const Profile: React.FC = () => {
     const [user, setUser] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profile' | 'address'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'address' | 'wishlist'>('profile');
 
     // Form state
     const [fullName, setFullName] = useState('');
@@ -75,9 +75,7 @@ const Profile: React.FC = () => {
             }
 
             const response = await axiosClient.put(`/users/${user.id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
 
             const updatedUser = response.data;
@@ -94,9 +92,6 @@ const Profile: React.FC = () => {
                 address: updatedUser.address
             };
             localStorage.setItem('user', JSON.stringify(newLocalUser));
-            
-            // Note: In a real app we'd also want to update AuthContext state here,
-            // but setting it in localStorage ensures it works on refresh/navigation.
 
             alert("Cập nhật thông tin thành công!");
         } catch (err: any) {
@@ -118,10 +113,9 @@ const Profile: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#f8f9fa] py-12 px-4 md:px-8">
             <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row gap-8">
-                
+
                 {/* SIDEBAR */}
                 <div className="w-full lg:w-72 shrink-0 space-y-6">
-                    {/* User Info Box */}
                     <div className="bg-white p-6 shadow-sm border border-gray-100 flex items-center gap-4">
                         <div className="relative group w-16 h-16 shrink-0">
                             <div className="w-full h-full bg-[#c8102e] flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
@@ -142,15 +136,20 @@ const Profile: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Menu Box */}
                     <div className="bg-white shadow-sm border border-gray-100 flex flex-col">
-                        <button 
+                        <button
                             onClick={() => setActiveTab('profile')}
                             className={`flex items-center gap-4 px-6 py-4 font-bold text-[15px] transition-colors ${activeTab === 'profile' ? 'bg-[#c8102e] text-white' : 'text-gray-700 hover:bg-gray-50'}`}
                         >
                             <User size={20} strokeWidth={2.5} /> Tài khoản của tôi
                         </button>
-                        <button 
+                        <button
+                            onClick={() => navigate('/wishlist')}
+                            className="flex items-center gap-4 px-6 py-4 text-gray-700 hover:bg-gray-50 font-bold text-[15px] border-t border-gray-100 transition-colors"
+                        >
+                            <Heart size={20} strokeWidth={2.5} /> Sản phẩm yêu thích
+                        </button>
+                        <button
                             onClick={() => setActiveTab('address')}
                             className={`flex items-center gap-4 px-6 py-4 font-bold text-[15px] border-t border-gray-100 transition-colors ${activeTab === 'address' ? 'bg-[#c8102e] text-white' : 'text-gray-700 hover:bg-gray-50'}`}
                         >
@@ -226,7 +225,7 @@ const Profile: React.FC = () => {
                                     value={province}
                                     onChange={e => {
                                         setProvince(e.target.value);
-                                        setWard(''); // reset ward when province changes
+                                        setWard('');
                                     }}
                                 >
                                     <option value="">Chọn tỉnh / thành phố</option>
@@ -279,7 +278,6 @@ const Profile: React.FC = () => {
                         </button>
                     </div>
                 </div>
-
             </div>
         </div>
     );

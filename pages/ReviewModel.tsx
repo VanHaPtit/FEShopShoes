@@ -180,7 +180,6 @@ const ReviewModel: React.FC<Props> = ({ item, onClose, onSuccess }) => {
                         <textarea
                             className="w-full bg-transparent outline-none text-sm min-h-[140px] resize-none text-gray-700"
                             placeholder="Bạn thích hoặc không thích điều gì về sản phẩm này? Hãy chia sẻ cho mọi người cùng biết nhé!"
-                            maxLength={300}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                         />

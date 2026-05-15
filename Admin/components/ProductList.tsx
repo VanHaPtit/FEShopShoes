@@ -556,7 +556,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                                         </label>
                                         <div className="relative">
                                             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                            <input type="number" min={0} className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400/30 outline-none"
+                                            <input type="number" className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400/30 outline-none"
                                                 placeholder="0" value={comboForm.comboPrice || ''}
                                                 onChange={e => setComboForm(p => ({ ...p, comboPrice: Number(e.target.value) }))} />
                                         </div>

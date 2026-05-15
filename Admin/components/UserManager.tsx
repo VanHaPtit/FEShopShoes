@@ -211,7 +211,7 @@ import React, { useState, useMemo } from 'react';
 import {
     User as UserIcon, Mail, Phone,
     ToggleLeft, ToggleRight, Send, X, CheckSquare,
-    Loader2, Filter, RefreshCcw
+    Loader2, Filter, RefreshCcw, Gift
 } from 'lucide-react';
 import { User } from '../typesAdmin';
 import axios from 'axios';
@@ -288,6 +288,27 @@ const UserManager: React.FC<UserManagerProps> = ({ users, onToggleStatus }) => {
         setQualifiedUserIds(null);
         setSelectedUserIds(new Set());
         setMinPaidCount(1);
+        setMailForm({ subject: '', content: '' });
+    };
+
+    const handleFilterBirthdays = () => {
+        const currentMonth = new Date().getMonth() + 1;
+        const ids = new Set<number>();
+        customersOnly.forEach(u => {
+            if ((u as any).dateOfBirth) {
+                const birthMonth = parseInt((u as any).dateOfBirth.split('-')[1], 10);
+                if (birthMonth === currentMonth && u.id) {
+                    ids.add(u.id);
+                }
+            }
+        });
+
+        setQualifiedUserIds(ids);
+        setSelectedUserIds(new Set());
+        setMailForm({
+            subject: "🎉 Chúc Mừng Sinh Nhật Từ ShopShoes! 🎂",
+            content: "Chào bạn,\n\nTháng này là tháng sinh nhật của bạn! ShopShoes chúc bạn một tháng sinh nhật vui vẻ, hạnh phúc và tràn đầy ý nghĩa.\nCảm ơn bạn đã luôn đồng hành và ủng hộ chúng tôi.\n\nTrân trọng,\nĐội ngũ FEShopShoes."
+        });
     };
 
     // ── Selection handlers ─────────────────────────────────────────────────────
@@ -450,7 +471,6 @@ const UserManager: React.FC<UserManagerProps> = ({ users, onToggleStatus }) => {
                                     <div className="flex gap-2">
                                         <input
                                             type="number"
-                                            min="0"
                                             value={minPaidCount}
                                             onChange={(e) => setMinPaidCount(Number(e.target.value))}
                                             className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 outline-none text-sm font-bold focus:border-blue-400 transition-colors"
@@ -467,6 +487,15 @@ const UserManager: React.FC<UserManagerProps> = ({ users, onToggleStatus }) => {
                                             }
                                         </button>
                                     </div>
+                                </div>
+
+                                <div className="pt-2 border-t border-slate-100">
+                                    <button
+                                        onClick={handleFilterBirthdays}
+                                        className="w-full bg-pink-50 text-pink-600 border border-pink-200 px-4 py-3 rounded-xl flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-pink-100 hover:border-pink-300 transition-all shadow-sm active:scale-95"
+                                    >
+                                        <Gift size={14} /> Lọc sinh nhật tháng này
+                                    </button>
                                 </div>
 
                                 {qualifiedUserIds !== null && (
