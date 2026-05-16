@@ -13,7 +13,7 @@ const CustomerChatBox: React.FC = () => {
   // Lấy dữ liệu từ Zustand store
   const { messages, isConnected } = useChat();
 
-  // Tự động cuộn xuống cuối khi có tin nhắn mới
+  // Tự động cuộn xuống cuối khi có tin nhắn mới hoặc khi mở box
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -23,17 +23,11 @@ const CustomerChatBox: React.FC = () => {
   // Kết nối WebSockets khi mở chat và đã đăng nhập
   useEffect(() => {
     if (isOpen && user && !isConnected) {
-      // Giả sử user chứa token ở user.token hoặc user.accessToken
       const token = user.token || user.accessToken;
       if (token) {
         connectChat(token, user.id, 'USER');
       }
     }
-    
-    // Tùy chọn: ngắt kết nối khi đóng hộp chat để tiết kiệm tài nguyên
-    // if (!isOpen && isConnected) {
-    //   disconnectChat();
-    // }
   }, [isOpen, user, isConnected]);
 
   const handleSend = () => {
@@ -77,18 +71,19 @@ const CustomerChatBox: React.FC = () => {
                 <p className="text-xs font-bold uppercase text-gray-500">Hỏi tôi về bất kỳ sản phẩm nào!</p>
               </div>
             )}
-            
+
             {!user && (
-               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-3 rounded-lg text-center mb-4">
-                 Bạn cần <a href="/signin" className="font-bold underline">Đăng nhập</a> để sử dụng tính năng Chat Realtime.
-               </div>
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-3 rounded-lg text-center mb-4">
+                Bạn cần <a href="/signin" className="font-bold underline">Đăng nhập</a> để sử dụng tính năng Chat Realtime.
+              </div>
             )}
 
             {messages.map((msg, idx) => (
-              <MessageBubble 
-                key={msg.id || idx} 
-                message={msg} 
-                isOwnMessage={msg.senderId === user?.id || msg.senderRole === 'USER'} 
+              <MessageBubble
+                key={msg.id || idx}
+                message={msg}
+                // Hợp nhất logic xác định tin nhắn của mình
+                isOwnMessage={msg.sender === 'USER' || msg.senderId === user?.id || msg.senderRole === 'USER'}
               />
             ))}
           </div>

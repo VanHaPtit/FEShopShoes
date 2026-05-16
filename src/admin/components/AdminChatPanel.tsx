@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useChat, connectChat, replyToUser } from '../../hooks/useChat';
 import { useAuth } from '../../context/AuthContext';
 import MessageBubble from '../../components/chat/MessageBubble';
@@ -6,12 +6,12 @@ import ToggleAIButton from './ToggleAIButton';
 
 const AdminChatPanel: React.FC = () => {
   const { user } = useAuth();
-  const { messages, isConnected, activeSessions } = useChat();
+  const { messages, isConnected } = useChat();
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Kết nối WebSockets khi vào trang Admin
+  // 1. Kết nối WebSockets khi vào trang Admin
   useEffect(() => {
     if (user && !isConnected) {
       const token = user.token || user.accessToken;
@@ -21,11 +21,27 @@ const AdminChatPanel: React.FC = () => {
     }
   }, [user, isConnected]);
 
-  // Tự động cuộn xuống cuối khi có tin nhắn mới
+  // 2. Tự động cuộn xuống cuối khi có tin nhắn mới hoặc đổi User
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
+  }, [messages, selectedUserId]);
+
+  // 3. Lọc danh sách User duy nhất từ lịch sử tin nhắn (Dùng useMemo để tối ưu)
+  const uniqueUsers = useMemo(() => {
+    const users = messages
+      .filter(m => m.senderRole === 'USER' || m.userId)
+      .map(m => m.senderId || m.userId);
+    return Array.from(new Set(users)).filter(Boolean) as number[];
+  }, [messages]);
+
+  // 4. Lọc tin nhắn của user đang được chọn
+  const currentMessages = useMemo(() => {
+    if (!selectedUserId) return [];
+    return messages.filter(
+      msg => msg.userId === selectedUserId || msg.senderId === selectedUserId || (msg.receiverId === selectedUserId && msg.senderRole === 'ADMIN')
+    );
   }, [messages, selectedUserId]);
 
   const handleReply = () => {
@@ -34,18 +50,9 @@ const AdminChatPanel: React.FC = () => {
     setReplyText('');
   };
 
-  // Lọc tin nhắn của user đang được chọn
-  const currentMessages = messages.filter(
-    msg => msg.senderId === selectedUserId || msg.id // Logic lọc này tuỳ thuộc vào BE trả về trường nào để map với user
-  );
-
-  // Nhóm sessions từ lịch sử tin nhắn nếu BE không hỗ trợ getActiveSessions
-  // Đây là logic fallback tạm thời
-  const uniqueUsers = Array.from(new Set(messages.filter(m => m.senderRole === 'USER').map(m => m.senderId))).filter(Boolean) as number[];
-
   return (
     <div className="flex h-[calc(100vh-100px)] bg-white rounded-2xl shadow-xl border border-[#E2E8F0] overflow-hidden">
-      
+
       {/* Sidebar: Danh sách User */}
       <div className="w-1/3 border-r border-[#E2E8F0] flex flex-col bg-[#F8FAFC]">
         <div className="p-4 border-b border-[#E2E8F0] bg-white">
@@ -54,13 +61,13 @@ const AdminChatPanel: React.FC = () => {
             <ToggleAIButton />
           </div>
         </div>
-        
+
         <div className="flex-grow overflow-y-auto">
           {uniqueUsers.length === 0 ? (
-             <div className="p-8 text-center text-gray-400 text-sm">Chưa có cuộc hội thoại nào.</div>
+            <div className="p-8 text-center text-gray-400 text-sm">Chưa có cuộc hội thoại nào.</div>
           ) : (
             uniqueUsers.map(uid => (
-              <div 
+              <div
                 key={uid}
                 onClick={() => setSelectedUserId(uid)}
                 className={`p-4 border-b border-[#E2E8F0] cursor-pointer transition-colors ${
@@ -77,7 +84,6 @@ const AdminChatPanel: React.FC = () => {
                       <p className="text-xs text-gray-500 truncate w-32">Nhấn để xem tin nhắn...</p>
                     </div>
                   </div>
-                  {/* Có thể thêm badge unread ở đây */}
                 </div>
               </div>
             ))
@@ -105,13 +111,11 @@ const AdminChatPanel: React.FC = () => {
             </div>
 
             <div ref={scrollRef} className="flex-grow overflow-y-auto p-6 space-y-4 bg-[#F8FAFC]">
-              {messages
-                .filter(m => m.senderId === selectedUserId || (m.senderRole !== 'USER')) // Lọc đơn giản
-                .map((msg, idx) => (
-                <MessageBubble 
-                  key={msg.id || idx} 
-                  message={msg} 
-                  isOwnMessage={msg.senderRole === 'ADMIN'} 
+              {currentMessages.map((msg, idx) => (
+                <MessageBubble
+                  key={msg.id || idx}
+                  message={msg}
+                  isOwnMessage={msg.senderRole === 'ADMIN' || msg.sender === 'ADMIN'}
                 />
               ))}
             </div>

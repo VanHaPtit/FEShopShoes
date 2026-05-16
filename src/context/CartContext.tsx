@@ -80,7 +80,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const payload = {
         variant: { id: variant.id },
         quantity,
-        price: variant.price || product.salePrice || product.basePrice
+        price: product.salePrice || product.basePrice
       };
       await axiosClient.post('/cart-items', payload);
       await fetchUserCartFromDB(user.id);
@@ -126,7 +126,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /* ===== 6. PAYMENT LOGIC ===== */
-  const totalAmount = cart.reduce((sum, item) => sum + (item.price || item.variant?.price || 0) * item.quantity, 0);
+  const totalAmount = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
   const shippingFee = totalAmount > 1500000 || totalAmount === 0 ? 0 : 50000;
   const finalAmount = totalAmount + shippingFee;
 

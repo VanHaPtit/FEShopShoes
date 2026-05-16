@@ -29,7 +29,6 @@ export interface Product {
     variants: ProductVariant[];
 }
 
-
 export interface Review {
     id: number;
     userId: number;
@@ -67,14 +66,21 @@ export interface CartItem {
     product: Product;
     variant: ProductVariant;
     quantity: number;
-    price: number;       // ✅
+    price: number;
 }
 
 export interface User {
     id: number;
     email: string;
     fullName: string;
+    phone?: string;
     roles: string[];
     token?: string;
     accessToken?: string;
+    // Giữ lại address để tương thích với component Profile
+    address?: {
+        province?: string;
+        ward?: string;
+        specificAddress?: string;
+    };
 }

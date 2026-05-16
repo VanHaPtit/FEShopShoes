@@ -7,10 +7,14 @@ export type MessageCallback = (msg: ChatMessage) => void;
 class ChatSocketService {
   private client: Client | null = null;
   private connected = false;
+  private isConnecting = false;
 
   public connect(token: string, onConnect: () => void, onError: (err: any) => void) {
-    if (this.connected) return;
+    // Ngăn chặn việc kết nối chồng chéo nếu đang trong quá trình kết nối hoặc đã kết nối xong
+    if (this.connected || this.isConnecting) return;
+    this.isConnecting = true;
 
+    // URL Backend - Có thể điều chỉnh qua biến môi trường (env)
     const socketUrl = `http://${window.location.hostname}:8080/ws`;
 
     this.client = new Client({
@@ -28,18 +32,28 @@ class ChatSocketService {
 
     this.client.onConnect = () => {
       this.connected = true;
+      this.isConnecting = false;
       onConnect();
     };
 
     this.client.onStompError = (frame) => {
+      this.connected = false;
+      this.isConnecting = false;
       console.error('Broker reported error: ' + frame.headers['message']);
       console.error('Additional details: ' + frame.body);
       onError(frame);
     };
 
     this.client.onWebSocketError = (event) => {
+      this.connected = false;
+      this.isConnecting = false;
       console.error('WebSocket Error', event);
       onError(event);
+    };
+
+    this.client.onDisconnect = () => {
+      this.connected = false;
+      this.isConnecting = false;
     };
 
     this.client.activate();
@@ -49,9 +63,11 @@ class ChatSocketService {
     if (this.client) {
       this.client.deactivate();
       this.connected = false;
+      this.isConnecting = false;
     }
   }
 
+  // KHÁCH HÀNG: Đăng ký nhận tin nhắn của riêng mình
   public subscribeUser(userId: number, callback: MessageCallback) {
     if (!this.client || !this.connected) return;
     this.client.subscribe(`/topic/user/${userId}`, (message) => {
@@ -61,6 +77,7 @@ class ChatSocketService {
     });
   }
 
+  // ADMIN: Đăng ký nhận toàn bộ tin nhắn từ các luồng hỗ trợ
   public subscribeAdmin(callback: MessageCallback) {
     if (!this.client || !this.connected) return;
     this.client.subscribe(`/topic/admin/chat`, (message) => {
@@ -70,6 +87,7 @@ class ChatSocketService {
     });
   }
 
+  // KHÁCH HÀNG: Gửi tin nhắn lên hệ thống
   public sendMessage(content: string) {
     if (!this.client || !this.connected) return;
     this.client.publish({
@@ -78,6 +96,7 @@ class ChatSocketService {
     });
   }
 
+  // ADMIN: Phản hồi tin nhắn cho một user cụ thể
   public replyToUser(targetUserId: number, content: string) {
     if (!this.client || !this.connected) return;
     this.client.publish({
@@ -85,8 +104,8 @@ class ChatSocketService {
       body: JSON.stringify({ targetUserId, content })
     });
   }
-  
-  public isConnected() {
+
+  public getStatus() {
     return this.connected;
   }
 }

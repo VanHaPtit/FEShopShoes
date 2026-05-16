@@ -1,8 +1,15 @@
 export interface ChatMessage {
   id?: number | string;
-  senderId?: number; // Có thể null nếu là AI hoặc Guest chưa đăng nhập
-  senderName?: string;
-  senderRole?: 'USER' | 'ADMIN' | 'AI';
+
+  // Hợp nhất định danh người gửi
+  userId?: number;      // Map đúng với backend mới
+  senderId?: number;    // Dự phòng cho logic cũ hoặc khách chưa đăng nhập
+  senderName?: string;  // Tên hiển thị (nếu có)
+
+  // Hợp nhất vai trò người gửi
+  sender?: 'USER' | 'ADMIN' | 'AI';     // Dùng trong HEAD
+  senderRole?: 'USER' | 'ADMIN' | 'AI'; // Dùng trong branch cũ
+
   content: string;
   timestamp?: string;
   isRead?: boolean;

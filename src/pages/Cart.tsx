@@ -489,6 +489,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/format';
 import { TrashIcon } from '../components/common/SimpleIcons';
@@ -967,7 +968,7 @@ const Cart: React.FC = () => {
   );
 
   const selectedSubtotal = useMemo(
-    () => selectedItems.reduce((sum, i) => sum + (i.variant?.price || 0) * i.quantity, 0),
+    () => selectedItems.reduce((sum, i) => sum + (i.price || 0) * i.quantity, 0),
     [selectedItems]
   );
 
@@ -1003,12 +1004,16 @@ const Cart: React.FC = () => {
     }
   };
 
+  const { user } = useAuth();
+
   // ── Modal state ───────────────────────────────────────────────────────────
   const [modalStep, setModalStep] = useState<ModalStep>('closed');
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
-    receiverName: '',
-    receiverPhone: '',
-    shippingAddress: '',
+    receiverName: user?.fullName || '',
+    receiverPhone: user?.phone || '',
+    shippingAddress: user?.address 
+      ? `${user.address.specificAddress || ''}, ${user.address.ward || ''}, ${user.address.province || ''}`.replace(/^[\s,]+|[\s,]+$/g, '').replace(/,(\s*,)+/g, ',')
+      : '',
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const totalLoading = cartLoading || isProcessing;
@@ -1032,7 +1037,7 @@ const Cart: React.FC = () => {
     items: selectedItems.map((item) => ({
       variant: { id: item.variant.id },
       quantity: item.quantity,
-      price: item.variant.price,
+      price: item.price,
     })),
   });
 
@@ -1194,7 +1199,7 @@ const Cart: React.FC = () => {
             <div className="space-y-6">
               {cart.map((item) => {
                 const isSelected = selectedIds.has(item.id);
-                const unitPrice = item.variant?.price || 0;
+                const unitPrice = item.price || 0;
                 const atStockLimit = item.quantity >= item.variant?.stock;
 
                 return (
@@ -1316,7 +1321,7 @@ const Cart: React.FC = () => {
                         <span className="text-gray-400 ml-1">×{item.quantity}</span>
                       </span>
                       <span className="font-bold flex-shrink-0 ml-2">
-                        {formatCurrency((item.variant?.price || 0) * item.quantity)}
+                        {formatCurrency((item.price || 0) * item.quantity)}
                       </span>
                     </div>
                   ))}
