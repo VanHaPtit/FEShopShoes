@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import ProductService from '../services/ProductService';
@@ -19,10 +19,13 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
   const { removeFromCart } = useCart();
+  const handledPaymentRef = useRef(false);
 
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
     const orderNumber = searchParams.get('order');
+    if (!paymentStatus || handledPaymentRef.current) return;
+    handledPaymentRef.current = true;
     if (paymentStatus === 'success') {
       const checkoutItemsStr = localStorage.getItem('checkoutItems');
       if (checkoutItemsStr) {
@@ -31,14 +34,15 @@ const Home = () => {
         localStorage.removeItem('checkoutItems');
       }
       showToast(`Thanh toán thành công đơn hàng ${orderNumber || ''}`, 'success');
-      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
     } else if (paymentStatus === 'failed') {
       showToast('Thanh toán thất bại hoặc đã bị hủy.', 'error');
-      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
     } else if (paymentStatus === 'error') {
       showToast('Lỗi xử lý thanh toán PayPal.', 'error');
-      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
     }
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('payment');
+    nextParams.delete('order');
+    setSearchParams(nextParams, { replace: true });
   }, [searchParams, setSearchParams, showToast, removeFromCart]);
 
   useEffect(() => {

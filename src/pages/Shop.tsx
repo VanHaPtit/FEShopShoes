@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ProductService } from '../services/ProductService';
 import { Product } from '../types';
@@ -14,6 +14,7 @@ const Shop: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [sort, setSort] = useState('newest');
   const { showToast } = useToast();
+  const handledPaymentRef = useRef(false);
 
   // Quản lý trạng thái bộ lọc giá (Dưới 1tr, 1-3tr, Trên 3tr)
   const [priceFilters, setPriceFilters] = useState<string[]>([]);
@@ -24,17 +25,20 @@ const Shop: React.FC = () => {
   const orderNumber = searchParams.get('order');
 
   useEffect(() => {
+    if (!paymentStatus || handledPaymentRef.current) return;
+    handledPaymentRef.current = true;
     if (paymentStatus === 'success') {
       showToast(`Thanh toán thành công đơn hàng ${orderNumber || ''}`, 'success');
-      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
     } else if (paymentStatus === 'failed') {
       showToast('Thanh toán thất bại hoặc đã bị hủy.', 'error');
-      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
     } else if (paymentStatus === 'error') {
       showToast('Lỗi xử lý thanh toán PayPal.', 'error');
-      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
     }
-  }, [paymentStatus, orderNumber, setSearchParams, showToast]);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('payment');
+    nextParams.delete('order');
+    setSearchParams(nextParams, { replace: true });
+  }, [paymentStatus, orderNumber, searchParams, setSearchParams, showToast]);
 
   useEffect(() => {
     const fetch = async () => {
