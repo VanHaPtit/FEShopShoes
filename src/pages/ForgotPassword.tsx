@@ -25,6 +25,7 @@ const ForgotPassword: React.FC = () => {
       showToast(response.data || "Mật khẩu mới đã được gửi đến email của bạn.", "success");
       navigate('/signin');
     } catch (err: any) {
+      console.error('Forgot password error:', err);
       const errorMsg = err.response?.data || "Không thể gửi yêu cầu khôi phục mật khẩu.";
       showToast(typeof errorMsg === 'string' ? errorMsg : "Có lỗi xảy ra", "error");
     } finally {

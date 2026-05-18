@@ -15,6 +15,7 @@ const SettingsManager: React.FC = () => {
     const [title, setTitle] = useState('');
     const [highlight, setHighlight] = useState('');
     const [desc, setDesc] = useState('');
+    const [bannerInterval, setBannerInterval] = useState<number | ''>(5); // Default 5 minutes
 
     useEffect(() => {
         loadBanner();
@@ -33,6 +34,9 @@ const SettingsManager: React.FC = () => {
                 if (data.bannerTitle !== undefined && data.bannerTitle !== null) setTitle(data.bannerTitle);
                 if (data.bannerHighlight !== undefined && data.bannerHighlight !== null) setHighlight(data.bannerHighlight);
                 if (data.bannerDescription !== undefined && data.bannerDescription !== null) setDesc(data.bannerDescription);
+                if (data.bannerInterval !== undefined && data.bannerInterval !== null) {
+                    setBannerInterval(Math.max(1, Math.floor(data.bannerInterval / 60000))); // Chuyển từ ms sang phút
+                }
             }
         } catch (error) {
             console.error(error);
@@ -65,6 +69,11 @@ const SettingsManager: React.FC = () => {
             if (res.data && res.data.bannerUrl) {
                 setBannerUrl(res.data.bannerUrl);
             }
+            
+            // Lưu bannerInterval
+            const intervalMs = (bannerInterval || 1) * 60000; // Phút sang ms
+            await axiosClient.put('/config/banner-interval', { bannerInterval: intervalMs });
+            
             setSelectedFile(null);
             showToast("Cập nhật Banner thành công", "success");
         } catch (error) {
@@ -159,6 +168,21 @@ const SettingsManager: React.FC = () => {
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" 
                                 placeholder="VD: MỌI GIỚI HẠN"
                             />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Thời gian chuyển Slide (Phút)</label>
+                            <input 
+                                type="number" 
+                                min="1"
+                                value={bannerInterval} 
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    setBannerInterval(val === '' ? '' : Math.max(1, parseInt(val) || 1));
+                                }} 
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+                                placeholder="VD: 5"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Khoảng thời gian banner tự động chuyển tiếp (Tối thiểu 1 phút)</p>
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-sm font-bold text-gray-700 mb-2">Mô tả (Description)</label>

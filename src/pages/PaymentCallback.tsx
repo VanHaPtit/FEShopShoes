@@ -9,9 +9,14 @@ const PaymentCallback: React.FC = () => {
   const { removeFromCart } = useCart();
   const { showToast } = useToast();
 
+  const handledRef = React.useRef(false);
+
   useEffect(() => {
     const responseCode = searchParams.get('vnp_ResponseCode');
     
+    if (handledRef.current || !responseCode) return;
+    handledRef.current = true;
+
     if (responseCode === '00') {
       const checkoutItemsStr = localStorage.getItem('checkoutItems');
       if (checkoutItemsStr) {

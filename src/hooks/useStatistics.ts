@@ -39,6 +39,15 @@ export const useStatistics = () => {
     }
   }, [filters.startDate, filters.endDate, setTopProducts, setError]);
 
+  const fetchSummaryStats = useCallback(async () => {
+    try {
+      const res = await statisticsApi.getSummaryStats(filters.startDate, filters.endDate);
+      useStatisticsStore.getState().setSummaryStats(res.data);
+    } catch (err) {
+      setError('Lỗi khi tải thống kê tổng hợp');
+    }
+  }, [filters.startDate, filters.endDate, setError]);
+
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -46,9 +55,10 @@ export const useStatistics = () => {
       fetchDailyRevenue(),
       fetchMonthlyRevenue(),
       fetchTopProducts(),
+      fetchSummaryStats(),
     ]);
     setLoading(false);
-  }, [fetchDailyRevenue, fetchMonthlyRevenue, fetchTopProducts, setLoading, setError]);
+  }, [fetchDailyRevenue, fetchMonthlyRevenue, fetchTopProducts, fetchSummaryStats, setLoading, setError]);
 
   useEffect(() => {
     fetchAllData();

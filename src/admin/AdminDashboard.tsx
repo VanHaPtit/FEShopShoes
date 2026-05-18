@@ -373,6 +373,7 @@ import UserManager from './components/UserManager';
 import AdminChatPanel from './components/AdminChatPanel';
 import DashboardPage from './DashboardPage';
 import SettingsManager from './components/SettingsManager';
+import BannerManager from './components/BannerManager';
 
 // Import các API và Type đã định nghĩa
 import { productApi, categoryApi, brandApi, orderApi, variantApi } from './api/adminApi';
@@ -668,6 +669,9 @@ const AdminDashboard: React.FC = () => {
 
             case 'settings':
                 return <SettingsManager />;
+
+            case 'banners':
+                return <BannerManager />;
 
             default:
                 return (

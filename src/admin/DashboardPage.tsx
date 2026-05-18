@@ -9,11 +9,8 @@ import TopProducts from './components/TopProducts';
 import { DollarSign, ShoppingCart, Users, Package } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
-  const { isLoading, dailyRevenue, topProducts } = useStatisticsStore();
+  const { isLoading, summaryStats } = useStatisticsStore();
   useStatistics(); // Fetch data on mount and when filters change
-
-  const totalRevenue = dailyRevenue.reduce((sum, item) => sum + item.totalRevenue, 0);
-  const totalOrders = Math.floor(totalRevenue / 2000000); // Mocked: 2M average order value
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
@@ -41,28 +38,28 @@ const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="TỔNG DOANH THU" 
-          value={formatCurrency(totalRevenue)} 
+          value={formatCurrency(summaryStats?.totalRevenue || 0)} 
           icon={<DollarSign size={24} />} 
           trend={{ value: 12, isUp: true }}
           color="green"
         />
         <StatCard 
           title="TỔNG ĐƠN HÀNG" 
-          value={totalOrders} 
+          value={summaryStats?.totalOrders || 0} 
           icon={<ShoppingCart size={24} />} 
           trend={{ value: 5, isUp: true }}
           color="blue"
         />
         <StatCard 
           title="KHÁCH HÀNG MỚI" 
-          value="1,284" 
+          value={summaryStats?.newCustomers || 0} 
           icon={<Users size={24} />} 
           trend={{ value: 2, isUp: false }}
           color="purple"
         />
         <StatCard 
           title="TỒN KHO" 
-          value="542" 
+          value={summaryStats?.totalStock || 0} 
           icon={<Package size={24} />} 
           color="orange"
         />

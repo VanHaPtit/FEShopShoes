@@ -29,5 +29,11 @@ export const statisticsApi = {
     return axiosClient.get<TopProduct[]>('/statistics/top-products', {
       params: { startDate, endDate, limit }
     });
+  },
+
+  getSummaryStats: (startDate: string, endDate: string) => {
+    return axiosClient.get<import('../store/statisticsStore').SummaryStats>('/statistics/summary', {
+      params: { startDate, endDate }
+    });
   }
 };

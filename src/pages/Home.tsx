@@ -15,6 +15,7 @@ const Home = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [banners, setBanners] = useState<any[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [bannerInterval, setBannerInterval] = useState(5000);
   
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
@@ -78,17 +79,29 @@ const Home = () => {
       }
     };
 
+    const fetchConfig = async () => {
+      try {
+        const res = await axiosClient.get('/config/banner');
+        if (res.data && res.data.bannerInterval) {
+          setBannerInterval(res.data.bannerInterval);
+        }
+      } catch (error) {
+        console.error('Lỗi tải config:', error);
+      }
+    };
+
     fetchProducts();
     fetchBanners();
+    fetchConfig();
   }, []);
 
   useEffect(() => {
     if (banners.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentBannerIndex(prev => (prev + 1) % banners.length);
-    }, 5000);
+    }, bannerInterval);
     return () => clearInterval(interval);
-  }, [banners]);
+  }, [banners, bannerInterval]);
 
   const currentBanner = banners[currentBannerIndex] || {
     bannerUrl: '',

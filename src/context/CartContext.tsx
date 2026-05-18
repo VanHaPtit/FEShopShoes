@@ -70,7 +70,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, fetchUserCartFromDB]);
 
   /* ===== 3. ADD TO CART ===== */
-  const addToCart = async (product: Product, variant: ProductVariant, quantity: number = 1) => {
+  const addToCart = useCallback(async (product: Product, variant: ProductVariant, quantity: number = 1) => {
     if (!user) {
       showToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng", "info");
       setTimeout(() => navigate('/signin'), 1500);
@@ -88,10 +88,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       showToast("Không thể thêm vào giỏ hàng", "error");
     }
-  };
+  }, [user, navigate, showToast, fetchUserCartFromDB]);
 
   /* ===== 4. UPDATE QUANTITY ===== */
-  const updateQuantity = async (itemId: number, quantity: number) => {
+  const updateQuantity = useCallback(async (itemId: number, quantity: number) => {
     if (quantity < 1) return;
     if (user) {
       try {
@@ -101,14 +101,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         showToast("Lỗi cập nhật số lượng", "error");
       }
     } else {
-      const newCart = cart.map(i => i.id === itemId ? { ...i, quantity } : i);
-      setCart(newCart);
-      localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+      setCart(prev => {
+        const newCart = prev.map(i => i.id === itemId ? { ...i, quantity } : i);
+        localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+        return newCart;
+      });
     }
-  };
+  }, [user, fetchUserCartFromDB, showToast]);
 
   /* ===== 5. REMOVE ITEM ===== */
-  const removeFromCart = async (itemId: number, silent: boolean = false) => {
+  const removeFromCart = useCallback(async (itemId: number, silent: boolean = false) => {
     if (user) {
       try {
         await axiosClient.delete(`/cart-items/${itemId}`);
@@ -118,19 +120,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!silent) showToast("Lỗi xóa sản phẩm", "error");
       }
     } else {
-      const newCart = cart.filter(i => i.id !== itemId);
-      setCart(newCart);
-      localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+      setCart(prev => {
+        const newCart = prev.filter(i => i.id !== itemId);
+        localStorage.setItem('adidas_cart', JSON.stringify(newCart));
+        return newCart;
+      });
       if (!silent) showToast("Đã xóa sản phẩm", "info");
     }
-  };
+  }, [user, fetchUserCartFromDB, showToast]);
 
   /* ===== 6. PAYMENT LOGIC ===== */
   const totalAmount = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
   const shippingFee = totalAmount > 1500000 || totalAmount === 0 ? 0 : 50000;
   const finalAmount = totalAmount + shippingFee;
 
-  const checkoutWithVNPay = async () => {
+  const checkoutWithVNPay = useCallback(async () => {
     if (!user) {
       showToast("Vui lòng đăng nhập để thanh toán", "error");
       return;
@@ -146,7 +150,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, finalAmount, showToast]);
 
   const clearCart = () => {
     setCart([]);

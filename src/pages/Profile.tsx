@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
 import {
-    User, MapPin, Bell, LogOut, Camera, Loader2
+    User, MapPin, Bell, LogOut, Camera, Loader2, Lock
 } from 'lucide-react';
 
 const Profile: React.FC = () => {
@@ -11,7 +11,7 @@ const Profile: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState<'account' | 'address'>('account');
+    const [activeTab, setActiveTab] = useState<'account' | 'address' | 'password'>('account');
     const [vnUnits, setVnUnits] = useState<any[]>([]);
 
     // Form state
@@ -24,6 +24,11 @@ const Profile: React.FC = () => {
     const [province, setProvince] = useState('');
     const [ward, setWard] = useState('');
     const [specificAddress, setSpecificAddress] = useState('');
+
+    // Password state
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
@@ -130,6 +135,41 @@ const Profile: React.FC = () => {
         }
     };
 
+    const handleChangePassword = async () => {
+        if (!user) return;
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            alert("Vui lòng nhập đầy đủ thông tin");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            alert("Mật khẩu mới không khớp");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            await axiosClient.put(`/users/${user.id}/change-password`, {
+                oldPassword,
+                newPassword
+            });
+            alert("Đổi mật khẩu thành công!");
+            setOldPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setActiveTab('account');
+        } catch (err: any) {
+            let errorMsg = "Lỗi khi đổi mật khẩu";
+            if (err.response?.data?.message) {
+                errorMsg = err.response.data.message;
+            } else if (typeof err.response?.data === 'string') {
+                errorMsg = err.response.data;
+            }
+            alert("Lỗi:\n" + errorMsg);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleCancel = () => {
         setIsEditing(false);
         if (user) {
@@ -199,6 +239,11 @@ const Profile: React.FC = () => {
                             className={`flex items-center gap-4 px-6 py-4 font-bold text-[15px] transition-colors ${activeTab === 'address' ? 'bg-[#2563EB] text-white' : 'text-gray-700 hover:bg-[#F8FAFC] border-t border-[#E2E8F0]'}`}>
                             <MapPin size={20} strokeWidth={2.5} /> Địa chỉ nhận hàng
                         </button>
+                        <button 
+                            onClick={() => { setActiveTab('password'); setIsEditing(false); }}
+                            className={`flex items-center gap-4 px-6 py-4 font-bold text-[15px] transition-colors ${activeTab === 'password' ? 'bg-[#2563EB] text-white' : 'text-gray-700 hover:bg-[#F8FAFC] border-t border-[#E2E8F0]'}`}>
+                            <Lock size={20} strokeWidth={2.5} /> Đổi mật khẩu
+                        </button>
                         <button onClick={handleLogout} className="flex items-center gap-4 px-6 py-4 text-[#2563EB] hover:bg-red-50 font-bold text-[15px] border-t border-[#E2E8F0] transition-colors">
                             <LogOut size={20} strokeWidth={2.5} /> Đăng xuất
                         </button>
@@ -210,10 +255,10 @@ const Profile: React.FC = () => {
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
                         <div>
                             <h1 className="text-2xl font-black uppercase text-[#0F172A] tracking-tight">
-                                {activeTab === 'account' ? 'HỒ SƠ CÁ NHÂN' : 'ĐỊA CHỈ NHẬN HÀNG'}
+                                {activeTab === 'account' ? 'HỒ SƠ CÁ NHÂN' : activeTab === 'address' ? 'ĐỊA CHỈ NHẬN HÀNG' : 'ĐỔI MẬT KHẨU'}
                             </h1>
                             <p className="text-gray-500 mt-1 text-sm">
-                                {activeTab === 'account' ? 'Quản lý thông tin hồ sơ để bảo mật tài khoản' : 'Cập nhật địa chỉ để nhận hàng'}
+                                {activeTab === 'account' ? 'Quản lý thông tin hồ sơ để bảo mật tài khoản' : activeTab === 'address' ? 'Cập nhật địa chỉ để nhận hàng' : 'Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác'}
                             </p>
                         </div>
                         <div className="flex gap-4 shrink-0">
@@ -269,7 +314,7 @@ const Profile: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : (
+                    ) : activeTab === 'address' ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-16">
                             <div className="border-b border-[#E2E8F0] pb-2 relative">
                                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 block">Tỉnh/Thành phố</label>
@@ -323,10 +368,52 @@ const Profile: React.FC = () => {
                                 )}
                             </div>
                         </div>
-                    )}
+                    ) : activeTab === 'password' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-16">
+                            <div className="border-b border-[#E2E8F0] pb-2 relative md:col-span-2">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 block">Mật khẩu cũ</label>
+                                <input
+                                    type="password"
+                                    className="w-full text-[#0F172A] text-[17px] font-medium focus:outline-none bg-transparent"
+                                    value={oldPassword}
+                                    onChange={e => setOldPassword(e.target.value)}
+                                    placeholder="Nhập mật khẩu hiện tại"
+                                />
+                            </div>
+                            <div className="border-b border-[#E2E8F0] pb-2 relative md:col-span-2">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 block">Mật khẩu mới</label>
+                                <input
+                                    type="password"
+                                    className="w-full text-[#0F172A] text-[17px] font-medium focus:outline-none bg-transparent"
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    placeholder="Nhập mật khẩu mới"
+                                />
+                            </div>
+                            <div className="border-b border-[#E2E8F0] pb-2 relative md:col-span-2">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 block">Xác nhận mật khẩu</label>
+                                <input
+                                    type="password"
+                                    className="w-full text-[#0F172A] text-[17px] font-medium focus:outline-none bg-transparent"
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    placeholder="Xác nhận mật khẩu mới"
+                                />
+                            </div>
+                        </div>
+                    ) : null}
 
                     <div className="mt-14 flex gap-4">
-                        {!isEditing ? (
+                        {activeTab === 'password' ? (
+                            <button
+                                onClick={handleChangePassword}
+                                disabled={isSaving}
+                                className="bg-[#2563EB] text-white px-8 py-3.5 font-bold text-[13px] tracking-widest uppercase hover:bg-[#1D4ED8] transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                            >
+                                {isSaving ? <Loader2 size={18} className="animate-spin" /> : null}
+                                ĐỔI MẬT KHẨU
+                            </button>
+                        ) : !isEditing ? (
                             <button
                                 onClick={() => setIsEditing(true)}
                                 className="bg-black text-white px-8 py-3.5 font-bold text-[13px] tracking-widest uppercase hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"

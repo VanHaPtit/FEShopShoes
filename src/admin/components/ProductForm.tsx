@@ -119,6 +119,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, brands, 
     // ── Save ──────────────────────────────────────────────────────────────────
     const handleSave = async () => {
         if (!form.name.trim()) return;
+
+        // Validate variants
+        for (const v of variants) {
+            if (!v.color || !v.color.trim() || !isNaN(Number(v.color))) {
+                setError(`Màu sắc "${v.color}" không hợp lệ. Vui lòng nhập chuỗi ký tự (vd: Đen, Trắng).`);
+                return;
+            }
+        }
+
         setSaving(true);
         setError(null);
 
@@ -313,7 +322,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, brands, 
                                 <Label>Base Price (VND) <Required /></Label>
                                 <input
                                     type="number"
-                                    value={form.basePrice}
+                                    value={form.basePrice || ''}
                                     onChange={e => update({ basePrice: Number(e.target.value) })}
                                     className={input}
                                 />

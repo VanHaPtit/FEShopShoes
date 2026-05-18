@@ -9,7 +9,8 @@ import {
     Users,
     MessageSquare,
     BarChart3,
-    Settings
+    Settings,
+    Image as ImageIcon
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -36,6 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
         { id: 'chat', icon: MessageSquare, label: 'Chat & AI' },
         { id: 'statistics', icon: BarChart3, label: 'Statistics' },
         { id: 'settings', icon: Settings, label: 'Settings' },
+        { id: 'banners', icon: ImageIcon, label: 'Banners' },
     ];
 
     return (

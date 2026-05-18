@@ -424,16 +424,7 @@ const UserManager: React.FC<UserManagerProps> = ({ users, onToggleStatus }) => {
                                     </p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => user.id && onToggleStatus(user.id)}
-                                className={`p-2 rounded-xl transition-colors ${user.enabled
-                                    ? 'bg-emerald-50 text-emerald-500 hover:bg-emerald-100'
-                                    : 'bg-rose-50 text-rose-500 hover:bg-rose-100'
-                                    }`}
-                                title={user.enabled ? 'Vô hiệu hóa' : 'Kích hoạt'}
-                            >
-                                {user.enabled ? <ToggleRight /> : <ToggleLeft />}
-                            </button>
+                            {/* Nút bật/tắt trạng thái đã được gỡ bỏ theo yêu cầu */}
                         </div>
 
                         <div className="text-sm text-slate-500 space-y-1">
