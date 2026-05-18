@@ -1,4 +1,6 @@
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import {
     Package,
     Layers,
@@ -16,6 +18,15 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
+            logout();
+            navigate('/');
+        }
+    };
     const menuItems = [
         { id: 'products', icon: Package, label: 'Products' },
         { id: 'categories', icon: Layers, label: 'Categories' },
@@ -72,17 +83,24 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
             </nav>
 
             {/* Bottom User Profile */}
-            <div className="p-6 mt-auto">
+            <div className="p-6 mt-auto border-t border-[#E2E8F0]">
                 <div className="flex items-center gap-3">
                     <img 
-                        src="https://ui-avatars.com/api/?name=Admin+User&background=1e293b&color=fff" 
+                        src={`https://ui-avatars.com/api/?name=${user?.fullName || 'Admin'}&background=1e293b&color=fff`} 
                         alt="Admin" 
                         className="w-10 h-10 rounded-full object-cover"
                     />
-                    <div>
-                        <p className="text-sm font-bold text-[#0F172A]">Admin User</p>
+                    <div className="flex-1 overflow-hidden">
+                        <p className="text-sm font-bold text-[#0F172A] truncate">{user?.fullName || 'Admin User'}</p>
                         <p className="text-xs text-gray-500 font-medium mt-0.5">Manager</p>
                     </div>
+                    <button 
+                        onClick={handleLogout}
+                        title="Đăng xuất"
+                        className="p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
                 </div>
             </div>
         </aside>

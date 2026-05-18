@@ -6,21 +6,26 @@ import { useToast } from '../context/ToastContext';
 const PaymentCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { clearCart } = useCart();
+  const { removeFromCart } = useCart();
   const { showToast } = useToast();
 
   useEffect(() => {
     const responseCode = searchParams.get('vnp_ResponseCode');
     
     if (responseCode === '00') {
-      clearCart(); // Xóa giỏ hàng khi thành công
+      const checkoutItemsStr = localStorage.getItem('checkoutItems');
+      if (checkoutItemsStr) {
+        const itemIds: number[] = JSON.parse(checkoutItemsStr);
+        itemIds.forEach(id => removeFromCart(id, true));
+        localStorage.removeItem('checkoutItems');
+      }
       showToast("Thanh toán đơn hàng thành công!", "success");
       navigate('/profile'); // Chuyển về trang cá nhân
     } else {
       showToast("Giao dịch thất bại hoặc đã bị hủy.", "error");
       navigate('/cart');
     }
-  }, [searchParams, navigate, clearCart, showToast]);
+  }, [searchParams, navigate, removeFromCart, showToast]);
 
   return (
     <div className="flex flex-col items-center justify-center py-40">
