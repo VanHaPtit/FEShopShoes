@@ -8,25 +8,28 @@ import ProductCard from '../components/common/ProductCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import axiosClient from '../api/axiosClient';
 import { useToast } from '../context/ToastContext';
+import { useCart } from '../context/CartContext';
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [banner, setBanner] = useState<any>({
-    bannerUrl: '',
-    bannerTag: '',
-    bannerTitle: '',
-    bannerHighlight: '',
-    bannerDescription: ''
-  });
+  const [banners, setBanners] = useState<any[]>([]);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
+  const { removeFromCart } = useCart();
 
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
     const orderNumber = searchParams.get('order');
     if (paymentStatus === 'success') {
+      const checkoutItemsStr = localStorage.getItem('checkoutItems');
+      if (checkoutItemsStr) {
+        const itemIds: number[] = JSON.parse(checkoutItemsStr);
+        itemIds.forEach(id => removeFromCart(id, true));
+        localStorage.removeItem('checkoutItems');
+      }
       showToast(`Thanh toán thành công đơn hàng ${orderNumber || ''}`, 'success');
       setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
     } else if (paymentStatus === 'failed') {
@@ -36,7 +39,7 @@ const Home = () => {
       showToast('Lỗi xử lý thanh toán PayPal.', 'error');
       setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
     }
-  }, [searchParams, setSearchParams, showToast]);
+  }, [searchParams, setSearchParams, showToast, removeFromCart]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -52,17 +55,19 @@ const Home = () => {
       }
     };
 
-    const fetchBanner = async () => {
+    const fetchBanners = async () => {
       try {
-        const res = await axiosClient.get('/config/banner');
-        if (res.data) {
-          setBanner({
-            bannerUrl: res.data.bannerUrl || "",
-            bannerTag: res.data.bannerTag || "",
-            bannerTitle: res.data.bannerTitle || "",
-            bannerHighlight: res.data.bannerHighlight || "",
-            bannerDescription: res.data.bannerDescription || ""
-          });
+        const res = await axiosClient.get('/banners/active');
+        if (res.data && res.data.length > 0) {
+          setBanners(res.data);
+        } else {
+          setBanners([{
+            bannerUrl: '',
+            bannerTag: 'SHOES HAN',
+            bannerTitle: 'BƯỚC ĐI TỰ TIN',
+            bannerHighlight: 'PHONG CÁCH',
+            bannerDescription: 'Khám phá bộ sưu tập giày mới nhất với thiết kế hiện đại, thoải mái và bền bỉ.'
+          }]);
         }
       } catch (error) {
         console.error('Lỗi khi tải banner:', error);
@@ -70,40 +75,57 @@ const Home = () => {
     };
 
     fetchProducts();
-    fetchBanner();
+    fetchBanners();
   }, []);
+
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex(prev => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [banners]);
+
+  const currentBanner = banners[currentBannerIndex] || {
+    bannerUrl: '',
+    bannerTag: 'SHOES HAN',
+    bannerTitle: 'BƯỚC ĐI TỰ TIN',
+    bannerHighlight: 'PHONG CÁCH',
+    bannerDescription: 'Khám phá bộ sưu tập giày mới nhất với thiết kế hiện đại, thoải mái và bền bỉ.'
+  };
 
   return (
     <div className="space-y-16 pb-20">
       {/* HERO */}
-      {(banner.bannerUrl || banner.bannerTitle || banner.bannerTag || banner.bannerDescription) && (
-        <section className="relative h-[80vh] w-full overflow-hidden bg-[#f0f2f5]">
-          {banner.bannerUrl && (
+      {(currentBanner.bannerUrl || currentBanner.bannerTitle || currentBanner.bannerTag || currentBanner.bannerDescription) && (
+        <section className="relative h-[80vh] w-full overflow-hidden bg-[#f0f2f5] transition-all duration-700 ease-in-out">
+          {currentBanner.bannerUrl && (
             <img
-              src={banner.bannerUrl}
+              key={currentBanner.bannerUrl}
+              src={currentBanner.bannerUrl}
               alt="Hero Banner"
-              className="absolute right-0 top-0 w-full md:w-2/3 h-full object-cover object-center md:object-right mix-blend-multiply opacity-95"
+              className="absolute right-0 top-0 w-full md:w-2/3 h-full object-cover object-center md:object-right mix-blend-multiply opacity-95 animate-[fadeIn_0.5s_ease-in-out]"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-[#f0f2f5] via-[#f0f2f5]/90 to-transparent flex items-center">
             <div className="max-w-[1400px] mx-auto px-4 lg:px-10 w-full">
-              <div className="max-w-xl space-y-4">
-                {banner.bannerTag && (
+              <div className="max-w-xl space-y-4 animate-[slideRight_0.5s_ease-out]">
+                {currentBanner.bannerTag && (
                   <div className="inline-block bg-[#2563EB] text-white px-3 py-1 text-xs font-bold tracking-widest uppercase">
-                    {banner.bannerTag}
+                    {currentBanner.bannerTag}
                   </div>
                 )}
                 
-                {(banner.bannerTitle || banner.bannerHighlight) && (
+                {(currentBanner.bannerTitle || currentBanner.bannerHighlight) && (
                   <h1 className="text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.9] text-[#1a1a1a]">
-                    {banner.bannerTitle} {banner.bannerTitle && banner.bannerHighlight && <br />}
-                    <span className="text-[#2563EB]">{banner.bannerHighlight}</span>
+                    {currentBanner.bannerTitle} {currentBanner.bannerTitle && currentBanner.bannerHighlight && <br />}
+                    <span className="text-[#2563EB]">{currentBanner.bannerHighlight}</span>
                   </h1>
                 )}
                 
-                {banner.bannerDescription && (
+                {currentBanner.bannerDescription && (
                   <p className="text-gray-600 text-base md:text-lg max-w-md pt-2 leading-relaxed font-medium">
-                    {banner.bannerDescription}
+                    {currentBanner.bannerDescription}
                   </p>
                 )}
                 

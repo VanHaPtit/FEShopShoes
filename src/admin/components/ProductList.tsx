@@ -237,9 +237,13 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                 }));
                 const bad = mapped.filter(r => !r.name || r.basePrice <= 0);
                 if (bad.length) { pushToast('error', `${bad.length} dòng lỗi: ${bad.map(r => r._row).join(', ')}`); return; }
-                // TODO: await productApi.bulkCreate(mapped)
-                console.log('[Import]', mapped);
-                pushToast('success', `Đọc thành công ${mapped.length} sản phẩm.`);
+                
+                productApi.bulkCreate(mapped).then(() => {
+                    pushToast('success', `Đã import thành công ${mapped.length} sản phẩm.`);
+                    setTimeout(() => window.location.reload(), 1500);
+                }).catch(err => {
+                    pushToast('error', 'Lỗi khi import: ' + err.message);
+                });
             } catch { pushToast('error', 'Không đọc được file .xlsx / .xls'); }
         };
         reader.readAsArrayBuffer(file);

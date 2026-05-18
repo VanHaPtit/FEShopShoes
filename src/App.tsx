@@ -24,6 +24,21 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 // Admin
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
 
+import { useAuth } from './context/AuthContext';
+
+const CustomerRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) return <LoadingSpinner fullScreen />;
+  
+  // Nếu là Admin, chặn không cho vào giao diện khách hàng, đẩy thẳng vào admin
+  if (user?.roles?.includes('ROLE_ADMIN')) {
+    return <Navigate to="/admin" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App: React.FC = () => {
   return (
     <Suspense fallback={<LoadingSpinner fullScreen />}>
@@ -35,9 +50,10 @@ const App: React.FC = () => {
 
         {/* KHU VỰC CHO KHÁCH HÀNG */}
         <Route path="/*" element={
-          <div className="min-h-screen flex flex-col selection:bg-black selection:text-white">
-            <Navbar />
-            <main className="flex-grow">
+          <CustomerRouteWrapper>
+            <div className="min-h-screen flex flex-col selection:bg-black selection:text-white">
+              <Navbar />
+              <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
@@ -58,7 +74,8 @@ const App: React.FC = () => {
             </main>
             <CustomerChatBox />
             <Footer />
-          </div>
+            </div>
+          </CustomerRouteWrapper>
         } />
       </Routes>
     </Suspense>

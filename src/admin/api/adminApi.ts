@@ -45,6 +45,9 @@ export const productApi = {
 
     getByCategory: (category: string): Promise<Product[]> =>
         axiosClient.get('/product', { params: { category } }).then(r => r.data),
+
+    bulkCreate: (products: any[]): Promise<string> =>
+        axiosClient.post('/product/bulk', products).then(r => r.data),
 };
 
 // ─── Variant API ─────────────────────────────────────────────────────────────
@@ -128,22 +131,12 @@ export const brandApi = {
     getById: (id: number): Promise<Brand> =>
         axiosClient.get(`/brand/${id}`).then(r => r.data),
 
-    create: (brand: Omit<Brand, 'id'>, file?: File): Promise<Brand> => {
-        const fd = new FormData();
-        fd.append('brand', new Blob([JSON.stringify(brand)], { type: 'application/json' }));
-        if (file) {
-            fd.append('file', file);
-        }
-        return axiosClient.post('/brand', fd).then(r => r.data);
+    create: (brand: Omit<Brand, 'id'>): Promise<Brand> => {
+        return axiosClient.post('/brand', brand).then(r => r.data);
     },
 
-    update: (id: number, brand: Brand, file?: File): Promise<Brand> => {
-        const fd = new FormData();
-        fd.append('brand', new Blob([JSON.stringify(brand)], { type: 'application/json' }));
-        if (file) {
-            fd.append('file', file);
-        }
-        return axiosClient.put(`/brand/${id}`, fd).then(r => r.data);
+    update: (id: number, brand: Brand): Promise<Brand> => {
+        return axiosClient.put(`/brand/${id}`, brand).then(r => r.data);
     },
 
     delete: (id: number): Promise<string> =>
