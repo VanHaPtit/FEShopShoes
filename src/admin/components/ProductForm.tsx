@@ -310,7 +310,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, brands, 
                     <FormSection icon={<Tag className="w-5 h-5 text-emerald-600" />} title="Pricing">
                         <div className="grid grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-100">
                             <div>
-                                <Label>Base Price ($) <Required /></Label>
+                                <Label>Base Price (VND) <Required /></Label>
                                 <input
                                     type="number"
                                     value={form.basePrice}
@@ -319,7 +319,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, brands, 
                                 />
                             </div>
                             <div>
-                                <Label>Sale Price ($) <span className="text-slate-400 font-normal text-xs ml-1">optional</span></Label>
+                                <Label>Sale Price (VND) <span className="text-slate-400 font-normal text-xs ml-1">optional</span></Label>
                                 <input
                                     type="number"
                                     value={form.salePrice ?? ''}

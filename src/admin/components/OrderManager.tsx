@@ -178,21 +178,6 @@ const OrderManager: React.FC<OrderManagerProps> = ({ orders, onRefresh }) => {
             {/* Header */}
             <div className="flex justify-between items-center mb-5 border-b border-slate-200 pb-4">
                 <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Đơn hàng</h2>
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center bg-blue-500 rounded-full pl-3 pr-1 py-1 cursor-pointer">
-                        <span className="text-xs font-bold text-white mr-2">ON</span>
-                        <div className="w-5 h-5 bg-white rounded-full shadow-sm"></div>
-                    </div>
-                    <button className="flex items-center gap-2 px-4 py-2.5 border border-amber-400 text-amber-500 bg-white rounded-md hover:bg-amber-50 font-medium transition-colors">
-                        <span className="text-amber-500 text-lg leading-none">📥</span> Export
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2.5 border border-emerald-400 text-emerald-500 bg-white rounded-md hover:bg-emerald-50 font-medium transition-colors">
-                        <span className="text-emerald-500 text-lg leading-none">📤</span> Import
-                    </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-sm transition-colors">
-                        <Plus className="w-4 h-4" /> Tạo đơn hàng
-                    </button>
-                </div>
             </div>
 
             {/* Filters (Dựa trên backend Entity Order) */}
