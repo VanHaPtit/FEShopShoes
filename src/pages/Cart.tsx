@@ -1050,8 +1050,9 @@ const Cart: React.FC = () => {
         case 'COD': {
           const response = await axiosClient.post('/orders', orderData);
           const orderNumber = response.data.orderNumber;
-          selectedItems.forEach((item) => removeFromCart(item.id));
-          navigate(`/order-success?orderNumber=${orderNumber}`);
+          selectedItems.forEach((item) => removeFromCart(item.id, true));
+          // Handle successful COD payment exactly like PayPal/VNPay success redirects
+          navigate(`/?payment=success&order=${orderNumber}`);
           break;
         }
         case 'VNPAY': {

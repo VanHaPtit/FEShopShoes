@@ -19,7 +19,7 @@ interface AuthUser {
 interface CartContextType {
   cart: CartItem[];
   addToCart: (product: Product, variant: ProductVariant, quantity?: number) => Promise<void>;
-  removeFromCart: (itemId: number) => Promise<void>;
+  removeFromCart: (itemId: number, silent?: boolean) => Promise<void>;
   updateQuantity: (itemId: number, quantity: number) => Promise<void>;
   clearCart: () => void;
   totalAmount: number;
@@ -108,20 +108,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /* ===== 5. REMOVE ITEM ===== */
-  const removeFromCart = async (itemId: number) => {
+  const removeFromCart = async (itemId: number, silent: boolean = false) => {
     if (user) {
       try {
         await axiosClient.delete(`/cart-items/${itemId}`);
         await fetchUserCartFromDB(user.id);
-        showToast("Đã xóa sản phẩm", "info");
+        if (!silent) showToast("Đã xóa sản phẩm", "info");
       } catch {
-        showToast("Lỗi xóa sản phẩm", "error");
+        if (!silent) showToast("Lỗi xóa sản phẩm", "error");
       }
     } else {
       const newCart = cart.filter(i => i.id !== itemId);
       setCart(newCart);
       localStorage.setItem('adidas_cart', JSON.stringify(newCart));
-      showToast("Đã xóa sản phẩm", "info");
+      if (!silent) showToast("Đã xóa sản phẩm", "info");
     }
   };
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import ProductService from '../services/ProductService';
 import { Product } from '../types';
@@ -7,6 +7,7 @@ import { Product } from '../types';
 import ProductCard from '../components/common/ProductCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import axiosClient from '../api/axiosClient';
+import { useToast } from '../context/ToastContext';
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -18,6 +19,24 @@ const Home = () => {
     bannerHighlight: '',
     bannerDescription: ''
   });
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const orderNumber = searchParams.get('order');
+    if (paymentStatus === 'success') {
+      showToast(`Thanh toán thành công đơn hàng ${orderNumber || ''}`, 'success');
+      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
+    } else if (paymentStatus === 'failed') {
+      showToast('Thanh toán thất bại hoặc đã bị hủy.', 'error');
+      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
+    } else if (paymentStatus === 'error') {
+      showToast('Lỗi xử lý thanh toán PayPal.', 'error');
+      setSearchParams(prev => { prev.delete('payment'); prev.delete('order'); return prev; });
+    }
+  }, [searchParams, setSearchParams, showToast]);
 
   useEffect(() => {
     const fetchProducts = async () => {

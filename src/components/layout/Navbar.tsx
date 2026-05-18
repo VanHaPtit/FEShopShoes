@@ -96,7 +96,7 @@ const Navbar: React.FC = () => {
           </button>
 
           <Link to="/" className="flex-shrink-0">
-            <span className="text-red-600 font-black text-xl md:text-2xl tracking-tighter uppercase">RETAIL_STORE</span>
+            <span className="text-red-600 font-black text-xl md:text-2xl tracking-tighter uppercase">SHOES HAN</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -137,7 +137,7 @@ const Navbar: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-white z-[100] p-6 lg:hidden overflow-y-auto flex flex-col">
           <div className="flex justify-between items-center mb-10">
-            <span className="text-red-600 font-black text-2xl tracking-tighter uppercase">RETAIL_STORE</span>
+            <span className="text-red-600 font-black text-2xl tracking-tighter uppercase">SHOES HAN</span>
             <button onClick={() => setIsMobileMenuOpen(false)}>
               <CloseIcon className="w-8 h-8" />
             </button>

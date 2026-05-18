@@ -62,7 +62,7 @@ const Login: React.FC = () => {
         showToast("Chào mừng bạn quay trở lại!", "success");
 
         // Kiểm tra quyền Admin để điều hướng
-        const isAdmin = response.data?.roles?.some((r: any) => r.id === 2 || r.name === 'ROLE_ADMIN');
+        const isAdmin = response.data?.roles?.includes('ROLE_ADMIN') || response.data?.roles?.some((r: any) => r === 'ROLE_ADMIN' || r?.name === 'ROLE_ADMIN');
         navigate(isAdmin ? '/admin' : '/shop');
       }
     } catch (err: any) {
@@ -86,7 +86,7 @@ const Login: React.FC = () => {
           <h2 className="text-3xl font-bold uppercase italic tracking-tighter">
             {isLogin ? 'Đăng Nhập' : 'Tạo Tài Khoản'}
           </h2>
-          <p className="text-gray-500 text-sm mt-2 uppercase tracking-widest font-bold">Adidas Official Store</p>
+          <p className="text-gray-500 text-sm mt-2 uppercase tracking-widest font-bold">Shoes Han Official Store</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,6 +124,19 @@ const Login: React.FC = () => {
             </div>
             {errors.password && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.password}</p>}
           </div>
+
+          {/* Quên mật khẩu */}
+          {isLogin && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                className="text-[11px] font-black uppercase text-gray-400 hover:text-black tracking-[0.05em] transition-colors"
+              >
+                Quên mật khẩu?
+              </button>
+            </div>
+          )}
 
           {/* Các trường bổ sung khi Đăng ký */}
           {!isLogin && (

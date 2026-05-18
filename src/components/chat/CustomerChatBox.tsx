@@ -54,7 +54,7 @@ const CustomerChatBox: React.FC = () => {
                 )}
               </div>
               <div>
-                <div className="font-bold text-sm tracking-widest">ADIDAS SUPPORT</div>
+                <div className="font-bold text-sm tracking-widest">SHOES HAN SUPPORT</div>
                 <div className="text-[10px] text-gray-400">{isConnected ? 'Đang hoạt động' : 'Đang kết nối...'}</div>
               </div>
             </div>

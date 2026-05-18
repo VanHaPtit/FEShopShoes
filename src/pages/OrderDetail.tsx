@@ -227,10 +227,10 @@ const OrderDetail: React.FC = () => {
                         {/* Address */}
                         <div className="bg-white border border-[#E2E8F0] p-6">
                             <h2 className="text-[11px] font-bold uppercase tracking-widest text-gray-500 mb-4">ĐỊA CHỈ NHẬN HÀNG</h2>
-                            <p className="font-bold text-[15px] text-[#0F172A] mb-1">{order.shippingAddress?.fullName || 'Khách hàng'}</p>
-                            <p className="text-gray-600 text-sm mb-3">{order.shippingAddress?.phone || 'Chưa cập nhật SĐT'}</p>
+                            <p className="font-bold text-[15px] text-[#0F172A] mb-1">{order.receiverName || 'Khách hàng'}</p>
+                            <p className="text-gray-600 text-sm mb-3">{order.receiverPhone || 'Chưa cập nhật SĐT'}</p>
                             <p className="text-gray-600 text-sm leading-relaxed">
-                                {order.shippingAddress?.fullAddress || order.address || 'Địa chỉ chưa được cập nhật'}
+                                {order.shippingAddress || 'Địa chỉ chưa được cập nhật'}
                             </p>
                         </div>
 
@@ -240,7 +240,10 @@ const OrderDetail: React.FC = () => {
                             <div className="flex items-center gap-3">
                                 <CreditCard className="text-[#2563EB]" size={20} />
                                 <span className="font-medium text-[#0F172A] text-[15px]">
-                                    {order.paymentMethod || 'Thanh toán khi nhận hàng (COD)'}
+                                    {order.paymentMethod === 'PAYPAL' ? 'Thanh toán PayPal' : 
+                                     order.paymentMethod === 'VNPAY' ? 'Thanh toán VNPay' : 
+                                     order.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : 
+                                     order.paymentMethod || 'Thanh toán khi nhận hàng (COD)'}
                                 </span>
                             </div>
                         </div>

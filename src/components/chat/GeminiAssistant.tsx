@@ -49,7 +49,7 @@ const GeminiAssistant: React.FC = () => {
           <div className="bg-black text-white p-4 flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="font-bold italic uppercase text-xs tracking-widest">ADIDAS AI ASSISTANT</span>
+              <span className="font-bold italic uppercase text-xs tracking-widest">SHOES HAN AI ASSISTANT</span>
             </div>
             <button onClick={() => setIsOpen(false)}><CloseIcon className="w-5 h-5" /></button>
           </div>

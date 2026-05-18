@@ -145,11 +145,18 @@ const OrderManager: React.FC<OrderManagerProps> = ({ orders, onRefresh }) => {
         const matchStatus = statusFilter === '' || order.status === statusFilter;
 
         // Date Match
-        const orderDateStr = (order as any).orderDate ? new Date((order as any).orderDate).toLocaleDateString('en-CA') : ''; // en-CA format is YYYY-MM-DD
+        let orderDateStr = '';
+        if ((order as any).orderDate) {
+            const parts = (order as any).orderDate.split('/');
+            if (parts.length === 3) {
+                // dd/MM/yyyy to yyyy-MM-dd
+                orderDateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+        }
         const matchDate = dateFilter === '' || orderDateStr === dateFilter;
 
         // Payment Match
-        const paymentMethod = (order as any).payment?.paymentMethod || 'COD';
+        const paymentMethod = (order as any).paymentMethod || 'COD';
         const matchPayment = paymentFilter === '' || paymentMethod === paymentFilter;
 
         return matchSearch && matchStatus && matchDate && matchPayment;
@@ -274,13 +281,13 @@ const OrderManager: React.FC<OrderManagerProps> = ({ orders, onRefresh }) => {
                                         )}
                                     </td>
                                     <td className="p-3 text-center">
-                                        <span className={`px-2 py-1.5 rounded text-white text-[10.5px] font-bold whitespace-nowrap inline-block shadow-sm ${(order as any).payment?.paymentMethod === 'PAYPAL' ? 'bg-[#003087]' : 'bg-[#1a5b82]'
+                                        <span className={`px-2 py-1.5 rounded text-white text-[10.5px] font-bold whitespace-nowrap inline-block shadow-sm ${(order as any).paymentMethod === 'PAYPAL' ? 'bg-[#003087]' : (order as any).paymentMethod === 'VNPAY' ? 'bg-[#005a9e]' : 'bg-[#1a5b82]'
                                             }`}>
-                                            {(order as any).payment?.paymentMethod || 'COD'}
+                                            {(order as any).paymentMethod || 'COD'}
                                         </span>
                                     </td>
                                     <td className="p-3 text-center text-slate-500 text-[11px] font-medium tracking-tight">
-                                        <div>{(order as any).orderDate ? new Date((order as any).orderDate).toLocaleDateString('vi-VN') : 'N/A'}</div>
+                                        <div>{(order as any).orderDate ? (order as any).orderDate : 'N/A'}</div>
                                     </td>
                                     <td className="p-3 text-center align-middle">
                                         <div className="flex flex-col items-center gap-2 justify-center opacity-80 hover:opacity-100 transition-opacity">

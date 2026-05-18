@@ -27,7 +27,6 @@ const ProductDetail: React.FC = () => {
 
   const [activeImage, setActiveImage] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'specs' | 'desc'>('specs');
 
   const { addToCart } = useCart();
   const { showToast } = useToast();
@@ -46,6 +45,10 @@ const ProductDetail: React.FC = () => {
           ProductService.getVariants(parseInt(id)),
           ReviewService.getByProductId(parseInt(id))
         ]);
+
+        if (p.active === false) {
+          throw new Error("Sản phẩm không khả dụng");
+        }
 
         setProduct(p);
         setVariants(v);
@@ -266,7 +269,6 @@ const ProductDetail: React.FC = () => {
               <p className="text-center text-[11px] text-gray-500">Sản phẩm hiện đang tạm hết hàng tại chi nhánh chính.</p>
             )}
           </div>
-        </div>
 
           <div className="grid grid-cols-2 gap-4 pt-6 border-t border-[#E2E8F0]">
             <div className="flex items-center gap-3 bg-[#fdfaf9] p-3 rounded-lg border border-[#f5efee]">
@@ -282,9 +284,6 @@ const ProductDetail: React.FC = () => {
                 <p className="text-[11px] font-bold text-[#0F172A]">Bảo hành 12 tháng</p>
                 <p className="text-[9px] text-gray-500">Chính hãng Biti's</p>
               </div>
-            </div>
-          </div>
-        </div>
             </div>
           </div>
         </div>

@@ -9,7 +9,7 @@ import { Product, ProductVariant, Category, Brand, Order } from '../../types/adm
 export const productApi = {
 
     getAll: (): Promise<Product[]> =>
-        axiosClient.get('/product').then(r => r.data),
+        axiosClient.get('/product?all=true').then(r => r.data),
 
     getById: (id: number): Promise<Product> =>
         axiosClient.get(`/product/${id}`).then(r => r.data),

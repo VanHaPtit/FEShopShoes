@@ -19,6 +19,10 @@ export const AuthService = {
 
     verifyEmail: (code: string) => {
         return axiosClient.get(`/auth/verify?code=${code}`);
+    },
+
+    forgotPassword: (email: string) => {
+        return axiosClient.post(`/auth/forgot-password?email=${encodeURIComponent(email)}`);
     }
 };
 

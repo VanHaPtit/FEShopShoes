@@ -20,6 +20,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const PaymentCallback = lazy(() => import('./pages/PaymentCallback'));
 const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 // Admin
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
 
@@ -44,6 +45,7 @@ const App: React.FC = () => {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/signin" element={<Login />} />
                 <Route path="/signup" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/verify" element={<VerifyEmail />} />
                 <Route path="/reviews/create/:productId/:orderItemId" element={<CreateReview />} />
                 <Route path="/login" element={<Navigate to="/signin" replace />} />

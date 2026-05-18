@@ -9,7 +9,7 @@ import {
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import { Product } from '../../types/admin';
-import { productApi } from '../api/adminApi';
+import { productApi, categoryApi } from '../api/adminApi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Category { id: number; name: string; }
@@ -71,17 +71,26 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
 
     // ── Categories từ API ────────────────────────────────────────────────
     const [categories, setCategories] = useState<Category[]>([]);
+    const [catsLoaded, setCatsLoaded] = useState(false);
+
     useEffect(() => {
-        axios.get<Category[]>(`${API}/categories`, { withCredentials: true })
-            .then(r => setCategories(r.data))
+        if (catsLoaded) return;
+        categoryApi.getAll()
+            .then(data => {
+                setCategories(data);
+                setCatsLoaded(true);
+            })
             .catch(() => {
                 // Fallback: lấy từ danh sách products hiện có
-                const names = Array.from(
-                    new Set(products.map(p => p.category?.name).filter(Boolean))
-                ) as string[];
-                setCategories(names.map((n, i) => ({ id: i, name: n })));
+                const uniqueCats = Array.from(
+                    new Map(products.filter(p => p.category).map(p => [p.category!.id, p.category!])).values()
+                ) as Category[];
+                if (uniqueCats.length > 0) {
+                    setCategories(uniqueCats);
+                    setCatsLoaded(true);
+                }
             });
-    }, []); // chỉ gọi 1 lần khi mount
+    }, [products, catsLoaded]);
 
     // ── Combo state ──────────────────────────────────────────────────────
     const [showComboPanel, setShowComboPanel] = useState(false);
@@ -174,7 +183,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
     // ── Filter / Pagination ───────────────────────────────────────────────
     const filtered = products.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (filterCategory === 'All' || p.category?.name === filterCategory)
+        (filterCategory === 'All' || p.category?.id?.toString() === filterCategory)
     );
     const paginated = filtered;
     const totalStock = (p: Product) => (p.variants ?? []).reduce((a, v) => a + v.stock, 0);
@@ -285,7 +294,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                             className="bg-transparent w-full text-[13px] font-medium text-gray-700 outline-none cursor-pointer"
                         >
                             <option value="All">All Categories</option>
-                            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                            {categories.map(c => <option key={c.id} value={c.id.toString()}>{c.name}</option>)}
                         </select>
                     </div>
                 </div>
