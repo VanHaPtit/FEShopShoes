@@ -15,7 +15,7 @@ class ChatSocketService {
     this.isConnecting = true;
 
     // URL Backend - Có thể điều chỉnh qua biến môi trường (env)
-    const socketUrl = `http://${window.location.hostname}:8080/ws`;
+    const socketUrl = import.meta.env.VITE_WS_URL;
 
     this.client = new Client({
       webSocketFactory: () => new SockJS(socketUrl),

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
+import axiosClient from '../../api/axiosClient';
 import { Product } from '../../types/admin';
 import { productApi, categoryApi } from '../api/adminApi';
 
@@ -34,7 +35,7 @@ interface ProductListProps {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ITEMS_PER_PAGE = 8;
-const API = 'http://localhost:8080/api/v1';
+
 
 const EXPORT_COLUMNS = [
     { header: 'ID', key: 'id' },
@@ -151,10 +152,10 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                 products: comboForm.products.map(p => ({ id: p.id })),
             };
             if (editingComboId) {
-                await axios.put(`${API}/combos/${editingComboId}`, payload, { withCredentials: true });
+                await axiosClient.put(`/combos/${editingComboId}`, payload);
                 pushToast('success', 'Đã cập nhật combo.');
             } else {
-                await axios.post(`${API}/combos`, payload, { withCredentials: true });
+                await axiosClient.post(`/combos`, payload);
                 pushToast('success', 'Đã tạo combo mới!');
             }
             resetComboForm();
@@ -166,7 +167,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
     const handleDeleteCombo = async (id: number) => {
         if (!window.confirm('Xoá combo này?')) return;
         try {
-            await axios.delete(`${API}/combos/${id}`, { withCredentials: true });
+            await axiosClient.delete(`/combos/${id}`);
             pushToast('success', 'Đã xoá combo.');
             setCombos(prev => prev.filter(c => c.id !== id));
             if (editingComboId === id) resetComboForm();
@@ -199,54 +200,36 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
 
     // ── Export Excel ──────────────────────────────────────────────────────
     const handleExport = () => {
-        const rows = filtered.map(p =>
-            Object.fromEntries(EXPORT_COLUMNS.map(col => [
-                col.header,
-                col.key === 'active' ? (getNestedValue(p, col.key) ? 'Có' : 'Không') : (getNestedValue(p, col.key) ?? '')
-            ]))
-        );
-        const ws = XLSX.utils.json_to_sheet(rows);
-        ws['!cols'] = EXPORT_COLUMNS.map(c => ({ wch: Math.max(c.header.length + 4, 16) }));
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Products');
-        XLSX.writeFile(wb, `products_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
-        pushToast('success', `Đã xuất ${rows.length} sản phẩm.`);
+        pushToast('success', 'Đang tạo file Excel từ server...');
+        axiosClient.get('/Excel/export-all', { responseType: 'blob' }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Shop_System_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            pushToast('success', 'Tải file thành công!');
+        }).catch(err => {
+            pushToast('error', 'Lỗi tải file: ' + err.message);
+        });
     };
 
     // ── Import Excel ──────────────────────────────────────────────────────
     const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]; if (!file) return;
+        const file = e.target.files?.[0]; 
+        if (!file) return;
         e.target.value = '';
-        const reader = new FileReader();
-        reader.onload = ev => {
-            try {
-                const wb = XLSX.read(new Uint8Array(ev.target?.result as ArrayBuffer), { type: 'array' });
-                const rows = XLSX.utils.sheet_to_json<any>(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-                if (!rows.length) { pushToast('error', 'File không có dữ liệu.'); return; }
-                const missing = ['Tên sản phẩm', 'Giá gốc'].filter(h => !(h in rows[0]));
-                if (missing.length) { pushToast('error', `Thiếu cột: ${missing.join(', ')}`); return; }
-                const mapped = rows.map((r, i) => ({
-                    _row: i + 2,
-                    name: String(r['Tên sản phẩm'] ?? '').trim(),
-                    basePrice: Number(r['Giá gốc']) || 0,
-                    salePrice: r['Giá sale'] !== '' ? Number(r['Giá sale']) : undefined,
-                    active: r['Kích hoạt'] === 'Có',
-                    slug: String(r['Slug'] ?? '').trim() || undefined,
-                    category: r['Danh mục'] ? { name: String(r['Danh mục']) } : undefined,
-                    brand: r['Thương hiệu'] ? { name: String(r['Thương hiệu']) } : undefined,
-                }));
-                const bad = mapped.filter(r => !r.name || r.basePrice <= 0);
-                if (bad.length) { pushToast('error', `${bad.length} dòng lỗi: ${bad.map(r => r._row).join(', ')}`); return; }
-                
-                productApi.bulkCreate(mapped).then(() => {
-                    pushToast('success', `Đã import thành công ${mapped.length} sản phẩm.`);
-                    setTimeout(() => window.location.reload(), 1500);
-                }).catch(err => {
-                    pushToast('error', 'Lỗi khi import: ' + err.message);
-                });
-            } catch { pushToast('error', 'Không đọc được file .xlsx / .xls'); }
-        };
-        reader.readAsArrayBuffer(file);
+
+        // Hiển thị toast thông báo đang upload vì upload ảnh sẽ tốn thời gian
+        pushToast('success', 'Đang xử lý import và upload hình ảnh. Vui lòng chờ...');
+
+        productApi.importExcelZip(file).then((res) => {
+            pushToast('success', res.message || 'Đã import thành công!');
+            setTimeout(() => window.location.reload(), 1500);
+        }).catch(err => {
+            pushToast('error', 'Lỗi khi import: ' + (err.response?.data?.message || err.message));
+        });
     };
 
     const filteredForCombo = products.filter(p =>
@@ -304,7 +287,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                 </div>
 
                 <div className="flex items-center gap-3 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0">
-                    <input ref={importRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} />
+                    <input ref={importRef} type="file" accept=".zip" className="hidden" onChange={handleImportFile} />
                     <button 
                         onClick={() => importRef.current?.click()}
                         className="border border-[#0F172A] px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#0F172A] bg-white hover:bg-black hover:text-white transition-colors whitespace-nowrap"

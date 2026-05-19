@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, Search, XCircle, Check, Pencil, X, Plus, Trash2, PackageX, ShoppingBag } from 'lucide-react';
 import { Order, OrderStatus } from '../../types/admin';
 import axios from 'axios';
+import axiosClient from '../../api/axiosClient';
 
 interface OrderItem {
     productId?: number;
@@ -83,10 +84,9 @@ const OrderManager: React.FC<OrderManagerProps> = ({ orders, onRefresh }) => {
         setSavingItems(true);
         try {
             const newTotal = calcTotal(draftItems);
-            const response = await axios.put(
-                `http://localhost:8080/api/v1/orders/${editItemsOrder.id}/items`,
-                { items: draftItems, totalPrice: newTotal },
-                { withCredentials: true }
+            const response = await axiosClient.put(
+                `/orders/${editItemsOrder.id}/items`,
+                { items: draftItems, totalPrice: newTotal }
             );
             if (response.status === 200) {
                 setEditItemsOrder(null);
@@ -113,15 +113,14 @@ const OrderManager: React.FC<OrderManagerProps> = ({ orders, onRefresh }) => {
 
     const handleSave = async (id: number) => {
         try {
-            const response = await axios.put(
-                `http://localhost:8080/api/v1/orders/${id}`,
+            const response = await axiosClient.put(
+                `/orders/${id}`,
                 {
                     receiverName: editForm.receiverName,
                     receiverPhone: editForm.receiverPhone,
                     shippingAddress: editForm.shippingAddress,
                     status: editForm.status
-                },
-                { withCredentials: true }
+                }
             );
             if (response.status === 200) {
                 setEditingId(null);

@@ -46,8 +46,11 @@ export const productApi = {
     getByCategory: (category: string): Promise<Product[]> =>
         axiosClient.get('/product', { params: { category } }).then(r => r.data),
 
-    bulkCreate: (products: any[]): Promise<string> =>
-        axiosClient.post('/product/bulk', products).then(r => r.data),
+    importExcelZip: (file: File): Promise<any> => {
+        const fd = new FormData();
+        fd.append('file', file);
+        return axiosClient.post('/Excel/import', fd).then(r => r.data);
+    },
 };
 
 // ─── Variant API ─────────────────────────────────────────────────────────────
