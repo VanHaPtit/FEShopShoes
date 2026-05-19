@@ -98,7 +98,7 @@ const Footer: React.FC = () => {
           <Link to="/privacy" className="hover:underline">Chính sách Bảo mật</Link>
           <Link to="/terms" className="hover:underline">Điều khoản và Điều kiện</Link>
           <Link to="/legal" className="hover:underline">Thông tin pháp lý</Link>
-          <span>© 2024 Shoes Han Vietnam Company Limited</span>
+          <span>© 2026 adidas Vietnam Company Limited</span>
         </div>
       </div>
     </footer>
